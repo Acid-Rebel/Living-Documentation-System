@@ -1,1 +1,70 @@
-*.pyc
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+*.log
+media/
+staticfiles/
+
+# Generated diagrams and outputs
+output/
+backend/media/
+
+# Test reports (keep structure, ignore generated files)
+reports/htmlcov/
+reports/*.txt
+
+# Node / Frontend
+node_modules/
+.next/
+out/
+.cache/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+tmp_*/
+
+# Dummy/test repositories
+dummy-repo/
+dummy-repo-2/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+*.log
+logs/
