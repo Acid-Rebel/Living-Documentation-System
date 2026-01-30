@@ -1,6 +1,7 @@
 import javalang
-from parsers.base_parser import BaseParser
-from normalizers.java_normalizer import normalize_java_ast
+
+from code_parser.normalizers.java_normalizer import normalize_java_ast
+from code_parser.parsers.base_parser import BaseParser
 
 class JavaParser(BaseParser):
 

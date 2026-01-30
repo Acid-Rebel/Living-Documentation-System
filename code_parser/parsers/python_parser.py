@@ -1,6 +1,7 @@
 import ast
-from parsers.base_parser import BaseParser
-from normalizers.python_normalizer import normalize_python_ast
+
+from code_parser.normalizers.python_normalizer import normalize_python_ast
+from code_parser.parsers.base_parser import BaseParser
 
 class PythonParser(BaseParser):
 
