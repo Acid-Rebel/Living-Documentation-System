@@ -63,11 +63,23 @@ def render_class_diagram_dot(graph, focus_classes=None):
                 f'"{child}" -> "{parent}" [arrowhead=empty];'
             )
 
-    # ---------- Composition ----------
+    # ---------- Composition (Owner <>- Part) ----------
     for owner, part in graph.composition:
         if owner in visible_classes and part in visible_classes:
+            mult = graph.multiplicity.get((owner, part), "")
+            label_attr = f'taillabel="{mult}"' if mult else ""
+            # Diamond on Owner (Tail), Arrow points to Part
             lines.append(
-                f'"{owner}" -> "{part}" [arrowhead=diamond];'
+                f'"{owner}" -> "{part}" [dir=back arrowtail=diamond {label_attr}];'
+            )
+
+    # ---------- Aggregation (Owner o- Part) ----------
+    for owner, part in graph.aggregation:
+        if owner in visible_classes and part in visible_classes:
+            mult = graph.multiplicity.get((owner, part), "")
+            label_attr = f'taillabel="{mult}"' if mult else ""
+            lines.append(
+                f'"{owner}" -> "{part}" [dir=back arrowtail=odiamond {label_attr}];'
             )
 
     # ---------- Usage ----------
@@ -82,22 +94,61 @@ def render_class_diagram_dot(graph, focus_classes=None):
 
 
 
+def render_api_diagram_dot(endpoints):
+    lines = [
+        "digraph G {",
+        "rankdir=LR;",
+        "node [shape=record];",
+    ]
+
+    # Group by class or file
+    groups = defaultdict(list)
+    for ep in endpoints:
+        key = ep.class_name if ep.class_name else f"File: {os.path.basename(ep.file_path)}"
+        groups[key].append(ep)
+
+    for group, items in groups.items():
+        # Create a record for the controller
+        rows = [f"{{ {group} | | }}"]
+        for item in items:
+            rows.append(f"{{ {item.http_method} | {item.path} | {item.handler_name} }}")
+        
+        label = "|".join(rows)
+        # Escape simplified
+        label = label.replace("{", "\\{").replace("}", "\\}")
+        # Graphviz record needs nested braces? 
+        # Actually simplest is HTML labels or just record with fields
+        # Let's try simple record: { Class | Method Path... | ... }
+        # { Class | { GET /foo | handler } | { POST /bar | handler } }
+        
+        inner_rows = []
+        for item in items:
+             inner_rows.append(f"{{{item.http_method}|{item.path}|{item.handler_name}}}")
+        
+        inner_str = "|".join(inner_rows)
+        label = f"{{{group}|{{{inner_str}}}}}"
+        
+        safe_id = group.replace(" ", "_").replace(".", "_").replace(":", "")
+        lines.append(f'"{safe_id}" [label="{label}"];')
+
+    lines.append("}")
+    return "\n".join(lines)
+
+
 def render_call_diagram_dot(graph, focus_classes=None):
     lines = ["digraph G {", "rankdir=LR;"]
 
-    calls = set(graph.calls) | set(graph.calls_heuristic)
+    # FIX: Use AST calls ONLY
+    calls = set(graph.calls)
 
     for src, dst in calls:
         if focus_classes and (src not in focus_classes or dst not in focus_classes):
             continue
 
-        style = "solid" if (src, dst) in graph.calls else "dashed"
-        lines.append(f'"{src}" -> "{dst}" [style={style}];')
+        # AST calls are solid
+        lines.append(f'"{src}" -> "{dst}" [style=solid];')
 
     return "\n".join(lines) + "\n}"
-
-
-
 
 
 def render_mermaid_to_png(md_path):
@@ -109,7 +160,6 @@ def render_mermaid_to_png(md_path):
     )
 
     return png_path
-
 
 
 def is_internal_module(module, all_modules):

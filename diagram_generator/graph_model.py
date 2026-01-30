@@ -27,8 +27,12 @@ class DiagramGraph:
         self.dependencies: Set[tuple[str, str]] = set()  # (module, module)
         self.usage: Set[tuple[str, str]] = set()          # (class, class)
         self.composition: Set[tuple[str, str]] = set()    # (class, class)
+        self.aggregation: Set[tuple[str, str]] = set()    # (class, class)
         self.calls: Set[tuple[str, str]] = set()          # (class, class) ✅ FIX
         self.calls_heuristic: Set[tuple[str, str]] = set()
+        
+        # (src, dst) -> label (e.g. "1..*")
+        self.multiplicity: Dict[tuple[str, str], str] = {}
 
 
     def load_from_semantics(self, symbols, relations):
@@ -65,24 +69,32 @@ class DiagramGraph:
         for rel in relations:
             src = rel.source
             tgt = rel.target
+            # Normalize relation type
             rtype = rel.relation_type.lower()
+            if rtype == "calls":
+                rtype = "call"
+            elif rtype == "imports":
+                rtype = "import"
 
             if src == tgt:
                 continue
 
             # ---- Inheritance ----
-            if rtype == "inheritance":
+            if rtype == "inheritance" or rtype == "inherits":
                 self.inheritance.add((src, tgt))
 
             # ---- Composition ----
             elif rtype == "composition":
                 self.composition.add((src, tgt))
 
-            # ---- Call ----
-            elif rtype == "CALLS":
-                if src != dst:
-                    self.calls_heuristic.add((src, dst))
+            # ---- Aggregation ----
+            elif rtype == "aggregation":
+                self.aggregation.add((src, tgt))
 
+            # ---- Call (Semantic = Unreliable) ----
+            elif rtype == "call":
+                 # Semantic calls are unreliable, store as heuristic/usage
+                 self.calls_heuristic.add((src, tgt))
 
             # ---- Usage ----
             elif rtype == "usage":
@@ -102,12 +114,33 @@ class DiagramGraph:
             self.classes[cls].attributes.update(info["attributes"])
     
         # ---------- Relations ----------
-        for src, dst, rtype in relations:
+        for item in relations:
+            # Handle 3-tuple or 4-tuple (with multiplicity)
+            if len(item) == 4:
+                src, dst, rtype, mult = item
+                if mult:
+                    self.multiplicity[(src, dst)] = mult
+            else:
+                src, dst, rtype = item
+
+            if src == dst:
+                continue
+
             if rtype == "INHERITS":
-                if src != dst:
-                    self.inheritance.add((src, dst))
+                self.inheritance.add((src, dst))
+            
+            elif rtype == "COMPOSITION":
+                self.composition.add((src, dst))
+            
+            elif rtype == "AGGREGATION":
+                self.aggregation.add((src, dst))
     
             elif rtype == "CALLS":
-                # FIX 1: AST calls are weak → usage only
-                if src != dst:
-                    self.usage.add((src, dst))
+                # AST calls are the reliable source -> graph.calls
+                
+                # Filter self-calls (method calls within same class)
+                # If dst is a method of src, it's a self-call
+                if src in self.classes and dst in self.classes[src].methods:
+                    continue
+                    
+                self.calls.add((src, dst))

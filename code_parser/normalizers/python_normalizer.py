@@ -9,8 +9,9 @@ def normalize_python_ast(node: ast.AST) -> ASTNode:
     node_name = _resolve_node_name(node)
     ast_node = ASTNode(
         node_type=type(node).__name__,
-        name=getattr(node, 'name', None),
+        name=node_name,
         language="python",
+        metadata=metadata,
     )
 
     # ✅ Preserve call targets
@@ -23,10 +24,7 @@ def normalize_python_ast(node: ast.AST) -> ASTNode:
     # ✅ Preserve class bases
     if isinstance(node, ast.ClassDef):
         ast_node.bases = [b.id if hasattr(b, "id") else str(b) for b in node.bases]
-        name=node_name,
-        language="python",
-        metadata=metadata,
-    )
+
 
     for child in ast.iter_child_nodes(node):
         ast_node.children.append(normalize_python_ast(child))
@@ -49,10 +47,13 @@ def _extract_metadata(node: ast.AST) -> Optional[Dict[str, Any]]:
 
     if isinstance(node, ast.Constant):
         metadata["value"] = node.value
-    elif isinstance(node, ast.Name):
-        metadata["id"] = node.id
-        metadata["ctx"] = type(node.ctx).__name__ if hasattr(node, "ctx") else None
-    elif isinstance(node, ast.Attribute):
+    else:
+        # print(f"DEBUG_NORM: Checking {type(node).__name__} {getattr(node, 'id', 'NoID')}")
+        if isinstance(node, ast.Name) or (hasattr(node, "id") and type(node).__name__ == "Name"):
+             metadata["id"] = node.id
+             metadata["ctx"] = type(node.ctx).__name__ if hasattr(node, "ctx") else None
+    
+    if isinstance(node, ast.Attribute):
         metadata["attr"] = node.attr
         resolved = _resolve_name(node)
         if resolved:
