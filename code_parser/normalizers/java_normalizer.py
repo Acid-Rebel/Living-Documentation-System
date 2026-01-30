@@ -1,4 +1,4 @@
-from ast_schema import ASTNode
+from code_parser.ast_schema import ASTNode
 import javalang
 
 def normalize_java_ast(node) -> ASTNode:
