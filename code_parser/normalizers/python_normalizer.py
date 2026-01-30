@@ -1,6 +1,6 @@
 import ast
-from code_parser.ast_schema import ASTNode
 
+from code_parser.ast_schema import ASTNode
 
 def normalize_python_ast(node) -> ASTNode:
     ast_node = ASTNode(

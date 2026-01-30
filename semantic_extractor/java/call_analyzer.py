@@ -31,7 +31,7 @@ class JavaCallAnalyzer(BaseAnalyzer):
         package: Optional[str],
         current_callable: Optional[str],
         acc: List[Relation],
-    ) -> None:
+    ) -> Optional[str]:
         current_package = package
         next_context = context
         next_callable = current_callable
@@ -51,10 +51,11 @@ class JavaCallAnalyzer(BaseAnalyzer):
             caller = next_callable or self._qualify(current_package, context) or file_path
             callee = self._extract_identifier(node)
             if callee and caller:
+                qualified_callee = self._qualify_call_target(current_package, callee)
                 acc.append(
                     Relation(
                         source=caller,
-                        target=callee,
+                        target=qualified_callee,
                         relation_type="CALLS",
                         language="java",
                         file_path=file_path,
@@ -62,7 +63,18 @@ class JavaCallAnalyzer(BaseAnalyzer):
                 )
 
         for child in node.children:
-            self._walk(child, file_path, next_context, current_package, next_callable, acc)
+            child_package = self._walk(
+                child,
+                file_path,
+                next_context,
+                current_package,
+                next_callable,
+                acc,
+            )
+            if child_package and child_package != current_package:
+                current_package = child_package
+
+        return current_package
 
     def _qualify(
         self,
@@ -82,17 +94,25 @@ class JavaCallAnalyzer(BaseAnalyzer):
         if node.name:
             return node.name
         if node.metadata:
+            qualifier = node.metadata.get("qualifier")
+            base_identifier: Optional[str] = None
             for key in (
                 "member",
                 "name",
                 "identifier",
                 "value",
                 "type",
-                "qualifier",
             ):
                 value = node.metadata.get(key)
                 if isinstance(value, str) and value:
-                    return value
+                    base_identifier = value
+                    break
+            if base_identifier:
+                if isinstance(qualifier, str) and qualifier:
+                    return f"{qualifier}.{base_identifier}"
+                return base_identifier
+            if isinstance(qualifier, str) and qualifier:
+                return qualifier
         if node.children:
             parts: List[str] = []
             for child in node.children:
@@ -102,3 +122,16 @@ class JavaCallAnalyzer(BaseAnalyzer):
             if parts:
                 return ".".join(parts)
         return None
+
+    def _qualify_call_target(self, package: Optional[str], callee: str) -> str:
+        if not package:
+            return callee
+
+        if callee.startswith(package + "."):
+            return callee
+
+        if "." in callee:
+            return callee
+
+        return f"{package}.{callee}"
+        return callee
