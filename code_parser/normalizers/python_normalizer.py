@@ -12,7 +12,6 @@ def normalize_python_ast(node: ast.AST) -> ASTNode:
         name=node_name,
         language="python",
         metadata=metadata,
-        metadata=metadata,
     )
 
     # ✅ Preserve call targets
