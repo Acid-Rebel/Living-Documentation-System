@@ -9,8 +9,9 @@ def normalize_python_ast(node: ast.AST) -> ASTNode:
     node_name = _resolve_node_name(node)
     ast_node = ASTNode(
         node_type=type(node).__name__,
-        name=getattr(node, 'name', None),
+        name=node_name,
         language="python",
+        metadata=metadata,
     )
 
     # ✅ Preserve call targets
@@ -23,10 +24,6 @@ def normalize_python_ast(node: ast.AST) -> ASTNode:
     # ✅ Preserve class bases
     if isinstance(node, ast.ClassDef):
         ast_node.bases = [b.id if hasattr(b, "id") else str(b) for b in node.bases]
-        name=node_name,
-        language="python",
-        metadata=metadata,
-    )
 
     for child in ast.iter_child_nodes(node):
         ast_node.children.append(normalize_python_ast(child))
