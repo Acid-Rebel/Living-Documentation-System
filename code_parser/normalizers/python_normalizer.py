@@ -6,9 +6,10 @@ from code_parser.ast_schema import ASTNode
 
 def normalize_python_ast(node: ast.AST) -> ASTNode:
     metadata = _extract_metadata(node)
+    node_name = _resolve_node_name(node)
     ast_node = ASTNode(
         node_type=type(node).__name__,
-        name=getattr(node, "name", None),
+        name=node_name,
         language="python",
         metadata=metadata,
     )
@@ -31,6 +32,23 @@ def _extract_metadata(node: ast.AST) -> Optional[Dict[str, Any]]:
                 decorators.append(serialized)
         if decorators:
             metadata["decorators"] = decorators
+
+    if isinstance(node, ast.Constant):
+        metadata["value"] = node.value
+    elif isinstance(node, ast.Name):
+        metadata["id"] = node.id
+        metadata["ctx"] = type(node.ctx).__name__ if hasattr(node, "ctx") else None
+    elif isinstance(node, ast.Attribute):
+        metadata["attr"] = node.attr
+        resolved = _resolve_name(node)
+        if resolved:
+            metadata["value"] = resolved
+    elif isinstance(node, ast.keyword):
+        metadata["arg"] = node.arg
+    elif isinstance(node, ast.Call):
+        func_name = _resolve_name(node.func)
+        if func_name:
+            metadata["func"] = func_name
 
     return metadata or None
 
@@ -68,6 +86,21 @@ def _resolve_name(node: ast.AST) -> Optional[str]:
         return ".".join(parts) if parts else None
     if isinstance(node, ast.Name):
         return node.id
+    return None
+
+
+def _resolve_node_name(node: ast.AST) -> Optional[str]:
+    direct_name = getattr(node, "name", None)
+    if direct_name:
+        return direct_name
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    if isinstance(node, ast.alias):
+        return node.name
+    if isinstance(node, ast.keyword):
+        return node.arg
     return None
 
 
