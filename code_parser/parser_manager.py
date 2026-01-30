@@ -1,6 +1,6 @@
-from language_detector import detect_language
-from parsers.python_parser import PythonParser
-from parsers.java_parser import JavaParser
+from code_parser.language_detector import detect_language
+from code_parser.parsers.python_parser import PythonParser
+from code_parser.parsers.java_parser import JavaParser
 
 PARSERS = {
     "python": PythonParser(),
@@ -18,3 +18,13 @@ def parse_source_file(file_path: str, source_code: str):
 
     raw_ast = parser.parse(source_code)
     return parser.normalize(raw_ast)
+
+
+def get_parser(language: str):
+    """
+    Returns the parser instance for the given language.
+    """
+    parser = PARSERS.get(language)
+    if not parser:
+        raise ValueError(f"No parser available for language: {language}")
+    return parser

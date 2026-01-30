@@ -36,52 +36,67 @@ def render_dependency_diagram_dot(graph):
 
 
 def render_class_diagram_dot(graph, focus_classes=None):
-    lines = ["digraph G {", "rankdir=TB;"]
+    lines = [
+        "digraph G {",
+        "rankdir=TB;",
+        "node [shape=record];",
+    ]
 
-    for cls, info in graph.classes.items():
-        if focus_classes and cls not in focus_classes:
-            continue
+    visible_classes = set(graph.classes.keys())
+    if focus_classes:
+        visible_classes &= set(focus_classes)
 
-        attrs = "\\l".join(sorted(info.attributes)) + "\\l"
-        methods = "\\l".join(sorted(info.methods)) + "\\l"
+    # ---------- Class nodes ----------
+    for cls in visible_classes:
+        info = graph.classes[cls]
+
+        attrs = "\\l".join(sorted(info.attributes)) + "\\l" if info.attributes else ""
+        methods = "\\l".join(sorted(info.methods)) + "\\l" if info.methods else ""
 
         label = f"{{{cls}|{attrs}|{methods}}}"
+        lines.append(f'"{cls}" [label="{label}"];')
 
-        lines.append(
-            f'"{cls}" [shape=record, label="{label}"];'
-        )
+    # ---------- Inheritance (Child -> Parent) ----------
+    for child, parent in graph.inheritance:
+        if child in visible_classes and parent in visible_classes:
+            lines.append(
+                f'"{child}" -> "{parent}" [arrowhead=empty];'
+            )
 
-    # Inheritance
-    for parent, child in graph.inheritance:
-        lines.append(f'"{child}" -> "{parent}" [arrowhead=empty];')
-
-    # Composition
+    # ---------- Composition ----------
     for owner, part in graph.composition:
-        lines.append(f'"{owner}" -> "{part}" [arrowhead=diamond];')
+        if owner in visible_classes and part in visible_classes:
+            lines.append(
+                f'"{owner}" -> "{part}" [arrowhead=diamond];'
+            )
 
-    # Usage / dependency
+    # ---------- Usage ----------
     for src, dst in graph.usage:
-        if src == dst:
-            continue
-        lines.append(f'"{src}" -> "{dst}" [style=dashed];')
+        if src != dst and src in visible_classes and dst in visible_classes:
+            lines.append(
+                f'"{src}" -> "{dst}" [style=dashed];'
+            )
 
-    return "\n".join(lines) + "\n}"
+    lines.append("}")
+    return "\n".join(lines)
+
 
 
 def render_call_diagram_dot(graph, focus_classes=None):
     lines = ["digraph G {", "rankdir=LR;"]
 
-    for src, dst in graph.usage:
-        if focus_classes:
-            if src not in focus_classes and dst not in focus_classes:
-                continue
+    calls = set(graph.calls) | set(graph.calls_heuristic)
 
-        if src == dst:
+    for src, dst in calls:
+        if focus_classes and (src not in focus_classes or dst not in focus_classes):
             continue
 
-        lines.append(f'"{src}" -> "{dst}";')
+        style = "solid" if (src, dst) in graph.calls else "dashed"
+        lines.append(f'"{src}" -> "{dst}" [style={style}];')
 
     return "\n".join(lines) + "\n}"
+
+
 
 
 
@@ -101,14 +116,30 @@ def is_internal_module(module, all_modules):
     return module in all_modules
 
 def group_calls_by_module(graph):
+    """
+    Groups classes by module for call diagrams.
+    Includes modules even if calls are self-loops.
+    """
     module_map = {}
 
-    for cls, info in graph.classes.items():
-        if info.module:
-            module = info.module.split(".")[0]
-            module_map.setdefault(module, set()).add(cls)
+    # Build class → module map
+    class_to_module = {
+        cls: info.module
+        for cls, info in graph.classes.items()
+        if info.module
+    }
+
+    # Collect modules with any call activity
+    for src, dst in graph.calls:
+        module = class_to_module.get(src)
+        if not module:
+            continue
+
+        module_map.setdefault(module, set()).add(src)
+        module_map[module].add(dst)
 
     return module_map
+
 
 
 def group_classes_by_module(graph):
