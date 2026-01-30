@@ -9,6 +9,20 @@ def normalize_python_ast(node: ast.AST) -> ASTNode:
     node_name = _resolve_node_name(node)
     ast_node = ASTNode(
         node_type=type(node).__name__,
+        name=getattr(node, 'name', None),
+        language="python",
+    )
+
+    # ✅ Preserve call targets
+    if isinstance(node, ast.Call):
+        if isinstance(node.func, ast.Name):
+            ast_node.call_target = node.func.id
+        elif isinstance(node.func, ast.Attribute):
+            ast_node.call_target = node.func.attr
+
+    # ✅ Preserve class bases
+    if isinstance(node, ast.ClassDef):
+        ast_node.bases = [b.id if hasattr(b, "id") else str(b) for b in node.bases]
         name=node_name,
         language="python",
         metadata=metadata,
