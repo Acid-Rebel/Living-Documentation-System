@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence as SequenceABC
+from collections.abc import Iterable
 from typing import Dict, List, Optional, Sequence
 
 from code_parser.ast_schema import ASTNode
@@ -73,7 +73,7 @@ class FlaskApiDetector(BaseApiDetector):
         decorators = node.metadata.get("decorators")
         if isinstance(decorators, dict):
             return decorators.values()
-        if isinstance(decorators, SequenceABC):
+        if isinstance(decorators, Iterable):
             return decorators
         return []
 
@@ -92,7 +92,7 @@ class FlaskApiDetector(BaseApiDetector):
     def _extract_paths(self, decorator: Dict) -> List[str]:
         paths: List[str] = []
         args = decorator.get("args") if isinstance(decorator, dict) else None
-        if isinstance(args, SequenceABC):
+        if isinstance(args, Iterable):
             for arg in args:
                 value = self._extract_literal(arg)
                 if value:
@@ -114,7 +114,7 @@ class FlaskApiDetector(BaseApiDetector):
         raw_methods = keywords.get("methods")
         if isinstance(raw_methods, str):
             return [raw_methods]
-        if isinstance(raw_methods, SequenceABC):
+        if isinstance(raw_methods, Iterable):
             methods: List[str] = []
             for entry in raw_methods:
                 literal = self._extract_literal(entry)
