@@ -30,7 +30,7 @@ class JavaSymbolAnalyzer(BaseAnalyzer):
         context: Sequence[_ContextEntry],
         package: Optional[str],
         acc: List[Symbol],
-    ) -> None:
+    ) -> Optional[str]:
         current_package = package
         next_context = context
 
@@ -66,7 +66,11 @@ class JavaSymbolAnalyzer(BaseAnalyzer):
             )
 
         for child in node.children:
-            self._walk(child, file_path, next_context, current_package, acc)
+            child_package = self._walk(child, file_path, next_context, current_package, acc)
+            if child_package and child_package != current_package:
+                current_package = child_package
+
+        return current_package
 
     def _qualify(
         self,
