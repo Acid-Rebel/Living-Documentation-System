@@ -1,0 +1,13 @@
+{
+  "name": "test-node-app",
+  "version": "1.0.1",
+  "description": "A test application for readme manager.",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "react": "^17.0.2"
+  }
+}
