@@ -3,7 +3,10 @@ import os
 import sys
 
 # Ensure src is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+# Also add parent of project_root to allow importing sibling modules like code_parser
+sys.path.insert(0, os.path.dirname(project_root))
 
 from src.generator.generator import Generator
 from src.config.config import Config

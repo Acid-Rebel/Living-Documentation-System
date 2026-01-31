@@ -1,4 +1,5 @@
-from ast_schema import ASTNode
+# Assuming imports are similar
+from ..ast_schema import ASTNode
 import javalang
 
 def normalize_java_ast(node) -> ASTNode:

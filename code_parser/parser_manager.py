@@ -1,6 +1,6 @@
-from language_detector import detect_language
-from parsers.python_parser import PythonParser
-from parsers.java_parser import JavaParser
+from .language_detector import detect_language
+from .parsers.python_parser import PythonParser
+from .parsers.java_parser import JavaParser
 
 PARSERS = {
     "python": PythonParser(),
