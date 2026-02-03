@@ -32,3 +32,8 @@ mypy==1.13.0
 
 # Utilities
 python-dotenv==1.0.1
+django
+djangorestframework
+django-cors-headers
+javalang
+Pillow
