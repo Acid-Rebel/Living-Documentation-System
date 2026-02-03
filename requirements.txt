@@ -7,11 +7,8 @@ djangorestframework==3.15.2
 # CORS headers for cross-origin requests
 django-cors-headers==4.6.0
 
-# Database (SQLite is built-in, but for production you might need)
-# psycopg2-binary==2.9.9  # PostgreSQL adapter (uncomment if needed)
-
-# File handling and storage
-Pillow==11.0.0
+# Code Analysis and Parsing
+# Python AST parsing is built-in, no additional package needed
 
 # Diagram Generation
 graphviz==0.20.3
@@ -20,9 +17,8 @@ graphviz==0.20.3
 pytest==8.3.4
 pytest-django==4.9.0
 pytest-cov==6.0.0
-coverage==7.6.9
 
-# Code Quality and Linting
+# Code Quality
 pylint==3.3.2
 black==24.10.0
 flake8==7.1.1
@@ -32,8 +28,3 @@ mypy==1.13.0
 
 # Utilities
 python-dotenv==1.0.1
-django
-djangorestframework
-django-cors-headers
-javalang
-Pillow
