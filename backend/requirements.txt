@@ -1,1 +1,5 @@
 django
+djangorestframework
+django-cors-headers
+javalang
+Pillow
