@@ -1,0 +1,27 @@
+# Development-only requirements
+# Install with: pip install -r backend/requirements-dev.txt
+
+# Include base requirements
+-r requirements.txt
+
+# Additional development tools
+ipython==8.31.0
+ipdb==0.13.13
+
+# Documentation
+Sphinx==8.1.3
+sphinx-rtd-theme==3.0.2
+
+# Code analysis
+bandit==1.8.0  # Security linter
+radon==6.0.1   # Code complexity analyzer
+
+# Performance profiling
+django-debug-toolbar==4.4.6
+django-extensions==3.2.3
+
+# API documentation
+drf-spectacular==0.28.0
+
+# Git hooks
+pre-commit==4.0.1
