@@ -8,17 +8,28 @@ def wrap_mermaid(content: str) -> str:
 
 
 def render_dot_to_png(dot_content: str, png_path: str):
-    import subprocess
-    import tempfile
+    """
+    Renders DOT content to PNG using Python graphviz library.
+    This requires GraphViz executables to be installed on the system.
+    """
+    import graphviz
+    import os
+    
+    # Ensure GraphViz is in PATH for Windows
+    if os.name == 'nt':
+        graphviz_path = r"C:\Program Files\Graphviz\bin"
+        if os.path.exists(graphviz_path) and graphviz_path not in os.environ["PATH"]:
+            os.environ["PATH"] += os.pathsep + graphviz_path
 
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".dot", delete=False) as f:
-        f.write(dot_content)
-        dot_path = f.name
+    # Get directory and filename without extension
 
-    subprocess.run(
-        ["dot", "-Tpng", dot_path, "-o", png_path],
-        check=True
-    )
+    directory = os.path.dirname(png_path) or '.'
+    filename = os.path.basename(png_path).replace('.png', '')
+    
+    # Create Source object and render
+    source = graphviz.Source(dot_content)
+    source.render(filename=filename, directory=directory, format='png', cleanup=True)
+
 
 
 def render_dependency_diagram_dot(graph):

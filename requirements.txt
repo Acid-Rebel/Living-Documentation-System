@@ -1,5 +1,5 @@
 # Core Django Framework
-Django==6.0.1
+Django>=4.2
 
 # Django REST Framework for API development
 djangorestframework==3.15.2
@@ -8,7 +8,7 @@ djangorestframework==3.15.2
 django-cors-headers==4.6.0
 
 # Code Analysis and Parsing
-# Python AST parsing is built-in, no additional package needed
+javalang==0.13.0
 
 # Diagram Generation
 graphviz==0.20.3

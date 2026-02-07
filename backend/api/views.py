@@ -9,10 +9,36 @@ from django.core.files import File
 import os
 import shutil
 import uuid
+import stat
+import threading
 
 from .models import Project, DiagramVersion
 from .serializers import ProjectSerializer, ProjectDetailSerializer, DiagramVersionSerializer
 from diagram_generator.generate_repo_diagrams import generate_repo_diagrams
+
+# Lock manager for project synchronization
+_project_locks = {}
+_global_lock = threading.Lock()
+
+def get_project_lock(project_id):
+    """
+    Returns a threading.Lock for the specific project ID.
+    Exceptions safe.
+    """
+    with _global_lock:
+        if project_id not in _project_locks:
+            _project_locks[project_id] = threading.Lock()
+        return _project_locks[project_id]
+
+
+
+def remove_readonly_and_retry(func, path, exc_info):
+    """
+    Error handler for Windows file permission issues.
+    Makes files writable before deletion.
+    """
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by('-created_at')
@@ -62,81 +88,88 @@ class ProjectViewSet(viewsets.ModelViewSet):
 from .models import Project, DiagramVersion, DiagramImage # Ensure DiagramImage imported if not already
 
 def process_and_save_diagram(project, commit_hash, commit_message, author):
-    # 3. Generate Diagrams
-    output_dir = generate_repo_diagrams(project.repo_url)
+    # Acquire lock for this project to ensure sequential processing
+    # If an update is running (auto or manual), this will wait (queue).
+    lock = get_project_lock(project.id)
     
-    # Attempt to extract actual commit hash (usually 7-char short hash)
-    path_parts = output_dir.strip(os.sep).split(os.sep)
-    if len(path_parts) >= 1:
-        extracted_commit = path_parts[-1]
-        # Prefer the short hash for database and UI consistency
-        commit_hash = extracted_commit
+    with lock:
+        # 3. Generate Diagrams
+        output_dir = generate_repo_diagrams(project.repo_url)
 
-    # 4. Locate the main diagram file
-    main_image_name = "class_diagram_global.png"
-    main_image_path = os.path.join(output_dir, main_image_name)
     
-    if not os.path.exists(main_image_path):
-            raise Exception("Diagram generation failed (main image not found)")
-
-    # 5. Create DiagramVersion
-    version = DiagramVersion(
-        project=project,
-        commit_hash=commit_hash,
-        commit_message=commit_message,
-        author=author
-    )
-    # Save main image to version (legacy/thumbnail use)
-    with open(main_image_path, 'rb') as f:
-        version.image_file.save(f"{commit_hash}.png", File(f), save=True)
+        
+        # Attempt to extract actual commit hash (usually 7-char short hash)
+        path_parts = output_dir.strip(os.sep).split(os.sep)
+        if len(path_parts) >= 1:
+            extracted_commit = path_parts[-1]
+            # Prefer the short hash for database and UI consistency
+            commit_hash = extracted_commit
     
-    # 6. Scan and Save All Diagrams as DiagramImage
-    for filename in os.listdir(output_dir):
-        if not filename.endswith(".png"):
-            continue
+        # 4. Locate the main diagram file
+        main_image_name = "class_diagram_global.png"
+        main_image_path = os.path.join(output_dir, main_image_name)
+        
+        if not os.path.exists(main_image_path):
+                raise Exception("Diagram generation failed (main image not found)")
+    
+        # 5. Create DiagramVersion
+        version = DiagramVersion(
+            project=project,
+            commit_hash=commit_hash,
+            commit_message=commit_message,
+            author=author
+        )
+        # Save main image to version (legacy/thumbnail use)
+        with open(main_image_path, 'rb') as f:
+            version.image_file.save(f"{commit_hash}.png", File(f), save=True)
+        
+        # 6. Scan and Save All Diagrams as DiagramImage
+        for filename in os.listdir(output_dir):
+            if not filename.endswith(".png"):
+                continue
+                
+            file_path = os.path.join(output_dir, filename)
             
-        file_path = os.path.join(output_dir, filename)
-        
-        # Determine Type and Description
-        d_type = 'other'
-        d_desc = filename
-        
-        if filename == "class_diagram_global.png":
-            d_type = "class_global"
-            d_desc = "Global Class Diagram"
-        elif filename == "dependency_diagram.png":
-            d_type = "dependency"
-            d_desc = "Dependency Diagram"
-        elif filename == "api_diagram.png":
-            d_type = "api"
-            d_desc = "API Diagram"
-        elif filename.startswith("class_"):
-            d_type = "class_module"
-            # Extract module name class_foo_bar.png -> foo.bar
-            mod = filename[6:-4].replace("_", ".") # simplistic replacement
-            d_desc = f"Class Diagram: {mod}"
-        elif filename.startswith("call_"):
-            d_type = "call"
-            mod = filename[5:-4].replace("_", ".")
-            d_desc = f"Call Diagram: {mod}"
-
-        # Create DiagramImage
-        with open(file_path, 'rb') as f:
-            di = DiagramImage(
-                version=version,
-                diagram_type=d_type,
-                description=d_desc
-            )
-            di.image_file.save(filename, File(f), save=True)
-
-    # Update project's last successfully processed hash
-    project.last_commit_hash = commit_hash
-    project.save()
-
-    # Clean up temporary generation output
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    return version
+            # Determine Type and Description
+            d_type = 'other'
+            d_desc = filename
+            
+            if filename == "class_diagram_global.png":
+                d_type = "class_global"
+                d_desc = "Global Class Diagram"
+            elif filename == "dependency_diagram.png":
+                d_type = "dependency"
+                d_desc = "Dependency Diagram"
+            elif filename == "api_diagram.png":
+                d_type = "api"
+                d_desc = "API Diagram"
+            elif filename.startswith("class_"):
+                d_type = "class_module"
+                # Extract module name class_foo_bar.png -> foo.bar
+                mod = filename[6:-4].replace("_", ".") # simplistic replacement
+                d_desc = f"Class Diagram: {mod}"
+            elif filename.startswith("call_"):
+                d_type = "call"
+                mod = filename[5:-4].replace("_", ".")
+                d_desc = f"Call Diagram: {mod}"
+    
+            # Create DiagramImage
+            with open(file_path, 'rb') as f:
+                di = DiagramImage(
+                    version=version,
+                    diagram_type=d_type,
+                    description=d_desc
+                )
+                di.image_file.save(filename, File(f), save=True)
+    
+        # Update project's last successfully processed hash
+        project.last_commit_hash = commit_hash
+        project.save()
+    
+        # Clean up temporary generation output
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir, onerror=remove_readonly_and_retry)
+        return version
 
 class WebhookView(APIView):
     def post(self, request):
