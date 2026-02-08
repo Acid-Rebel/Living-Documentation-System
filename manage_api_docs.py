@@ -10,17 +10,20 @@ def main():
     parser.add_argument("--framework", required=True, choices=["django", "flask", "fastapi"])
     parser.add_argument("--entry", required=True, help="Entry point (e.g. backend.urls)")
     parser.add_argument("--output", default="API_DOCS.md", help="Output Markdown file")
+    parser.add_argument("--pdf", help="Output PDF file (optional)")
+    parser.add_argument("--key", help="Gemini API Key for enhancement (optional)")
     parser.add_argument("--storage", default=".api_docs_version.json", help="Version storage file")
     
     args = parser.parse_args()
     
+    # ... (Extraction logic same) ...
     # 1. Extract
     print(f"Extracting endpoints from {args.entry} ({args.framework})...")
     extractor = EndpointExtractor(os.getcwd())
     
     entry_point = args.entry
     if args.framework in ['flask', 'fastapi']:
-        # Load app instance from string "module:app"
+         # ... (Dynamic loading logic same) ...
         try:
             if ":" not in args.entry:
                 print("Error: For Flask/FastAPI, entry must be 'module:app'")
@@ -56,13 +59,24 @@ def main():
         print("No changes detected.")
         
     # 3. Generate Docs
-    generator = APIDocGenerator()
+    print("Generating documentation...")
+    if args.key:
+        print("Gemini enhancement enabled.")
+    
+    generator = APIDocGenerator(api_key=args.key)
     markdown = generator.generate_markdown(endpoints, diff)
     
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(markdown)
-    
-    print(f"Documentation generated at {args.output}")
+    print(f"Markdown generated at {args.output}")
+
+    if args.pdf:
+        print(f"Generating PDF at {args.pdf}...")
+        try:
+            generator.generate_pdf(markdown, args.pdf)
+            print("PDF generated successfully.")
+        except Exception as e:
+            print(f"PDF generation failed: {e}")
     
     # 4. Save Version
     version_manager.save_version(endpoints)
