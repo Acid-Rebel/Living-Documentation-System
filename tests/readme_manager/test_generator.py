@@ -10,34 +10,20 @@ class TestReadmeGenerator(unittest.TestCase):
         self.generator = ReadmeGenerator(self.project_root, self.api_key)
 
     @patch('readme_manager.generator.genai.GenerativeModel')
-    def test_generate_content_gemini(self, mock_model):
-        # Test Gemini provider
+    def test_generate_content(self, mock_model):
+        # Mock the response from Gemini
         mock_response = MagicMock()
-        mock_response.text = '{"project_name": "Gemini Project", "overview": "Overview"}'
+        mock_response.text = '{"project_name": "Test Project", "overview": "A test project", "features": [], "architecture_summary": "Test arch", "usage_instructions": "Run it", "api_endpoints": [], "language": "Python"}'
+        
         mock_model_instance = mock_model.return_value
         mock_model_instance.generate_content.return_value = mock_response
+        
+        # Inject the mock model into the generator
         self.generator.model = mock_model_instance
         
         content = self.generator.generate_content()
-        self.assertEqual(content['project_name'], "Gemini Project")
-
-    @patch('readme_manager.generator.requests.post')
-    def test_generate_content_ollama(self, mock_post):
-        # Test Ollama provider
-        ollama_generator = ReadmeGenerator(self.project_root, model_provider="ollama")
-        
-        mock_response = MagicMock()
-        mock_response.json.return_value = {'response': '{"project_name": "Ollama Project", "overview": "Overview"}'}
-        mock_post.return_value = mock_response
-        
-        content = ollama_generator.generate_content()
-        self.assertEqual(content['project_name'], "Ollama Project")
-        
-        # Verify correct URL and model were used
-        mock_post.assert_called_once()
-        args, kwargs = mock_post.call_args
-        self.assertEqual(args[0], "http://localhost:11434/api/generate")
-        self.assertEqual(kwargs['json']['model'], "gemma3:4b")
+        self.assertEqual(content['project_name'], "Test Project")
+        self.assertEqual(content['overview'], "A test project")
 
 
     def test_analyze_structure(self):

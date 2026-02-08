@@ -1,28 +1,20 @@
 import os
 import sys
-import argparse
 from readme_manager.generator import ReadmeGenerator
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate README documentation')
-    parser.add_argument('api_key', nargs='?', help='Gemini API Key')
-    parser.add_argument('--provider', choices=['gemini', 'ollama'], default='gemini', help='Model provider')
-    parser.add_argument('--model', help='Model name override')
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if len(sys.argv) > 1:
+        api_key = sys.argv[1]
     
-    args = parser.parse_args()
-    
-    api_key = args.api_key or os.environ.get("GEMINI_API_KEY")
-    
-    if args.provider == 'gemini' and not api_key:
-        print("Error: GEMINI_API_KEY environment variable not set and not provided as argument for Gemini provider.")
+    if not api_key:
+        print("Error: GEMINI_API_KEY environment variable not set and not provided as argument.")
         sys.exit(1)
 
     print(f"Generating README for current directory: {os.getcwd()}")
-    print(f"Provider: {args.provider}")
-    print(f"Model: {args.model or 'default'}")
     
     try:
-        generator = ReadmeGenerator(os.getcwd(), api_key, args.provider, args.model)
+        generator = ReadmeGenerator(os.getcwd(), api_key)
         generator.render("README_gen.md")
         print("Done! Check README_gen.md")
     except Exception as e:
