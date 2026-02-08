@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="23" time="0.333" timestamp="2026-02-08T23:00:57.673703+05:30" hostname="Ajeth"><testcase classname="tests.diagram_generator.test_graph_model" name="test_initialization" time="0.002" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_load_from_semantics_symbols" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_load_from_semantics_relations" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_load_from_semantics_ignore_identicals" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_add_ast_relations_classes" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_add_ast_relations_merging" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_add_ast_relations_relationships" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_filter_self_calls_ast" time="0.001" /><testcase classname="tests.diagram_generator.test_graph_model" name="test_valid_call_ast" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_relations" name="test_extract_class_def" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_relations" name="test_extract_method_def" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_relations" name="test_extract_calls" time="0.002" /><testcase classname="tests.diagram_generator.test_ast_relations" name="test_extract_composition_via_init" time="0.001"><failure message="TypeError: MockAST.__init__() got an unexpected keyword argument 'call_target'">make_node = &lt;function make_node.&lt;locals&gt;._make at 0x0000016FE0951C60&gt;
+
+    def test_extract_composition_via_init(make_node):
+        # class Car:
+        #   def __init__(self):
+        #       self.engine = Engine()
+    
+        assign_node = make_node("Assign", children=[
+            # Target: self.engine
+            make_node("Attribute", name="engine", children=[
+                make_node("Name", name="self")
+            ]),
+            # Value: Engine()
+&gt;           make_node("Call", call_target="Engine")
+        ])
+
+tests\diagram_generator\test_ast_relations.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+node_type = 'Call', name = None, children = None
+kwargs = {'call_target': 'Engine'}
+
+    def _make(node_type, name=None, children=None, **kwargs):
+&gt;       return MockAST(node_type, name, children, **kwargs)
+E       TypeError: MockAST.__init__() got an unexpected keyword argument 'call_target'
+
+tests\diagram_generator\conftest.py:21: TypeError</failure></testcase><testcase classname="tests.diagram_generator.test_ast_relations" name="test_extract_aggregation_via_annotation" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_relations" name="test_extract_nested_classes" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_traverser" name="test_traverse_classes" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_traverser" name="test_traverse_methods" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_traverser" name="test_traverse_heuristics" time="0.001" /><testcase classname="tests.diagram_generator.test_ast_traverser" name="test_traverse_abstract_class" time="0.001"><failure message="TypeError: MockAST.__init__() got an unexpected keyword argument 'decorators'">make_node = &lt;function make_node.&lt;locals&gt;._make at 0x0000016FE0B4C5E0&gt;
+
+    def test_traverse_abstract_class(make_node):
+        graph = DiagramGraph()
+        root = make_node("Module", children=[
+&gt;           make_node("ClassDef", name="AbstractBase", decorators=["@abstractmethod"])
+        ])
+
+tests\diagram_generator\test_ast_traverser.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+node_type = 'ClassDef', name = 'AbstractBase', children = None
+kwargs = {'decorators': ['@abstractmethod']}
+
+    def _make(node_type, name=None, children=None, **kwargs):
+&gt;       return MockAST(node_type, name, children, **kwargs)
+E       TypeError: MockAST.__init__() got an unexpected keyword argument 'decorators'
+
+tests\diagram_generator\conftest.py:21: TypeError</failure></testcase><testcase classname="tests.diagram_generator.test_heuristics" name="test_enrich_with_heuristics_imports_to_calls" time="0.002" /><testcase classname="tests.diagram_generator.test_heuristics" name="test_enrich_with_heuristics_no_change" time="0.001" /><testcase classname="tests.diagram_generator.test_repo_scanner" name="test_scan_repo_files" time="0.001" /><testcase classname="tests.diagram_generator.test_repo_scanner" name="test_scan_repo_empty" time="0.002" /></testsuite></testsuites>
