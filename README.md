@@ -143,6 +143,21 @@ The backend automatically polls remote repositories every 20 seconds. No configu
 3. Use the version selector to view historical diagrams
 4. Click diagrams to view full-size in gallery mode
 
+### API Documentation Manager
+
+Automatically generate, version, and enhance your API documentation.
+
+1. **Run the Manager**:
+   ```bash
+   python manage_api_docs.py --framework [django|flask|fastapi] --entry [module.urls|module:app] --key [OPTIONAL_GEMINI_KEY] --pdf [OPTIONAL_OUTPUT.pdf]
+   ```
+
+2. **Features**:
+   - **Extraction**: Supports Django, Flask, and FastAPI.
+   - **Versioning**: Tracks added, removed, and deprecated endpoints.
+   - **Enhancement**: Uses Gemini to write better endpoint descriptions.
+   - **PDF Export**: Converts documentation to professional PDF format.
+
 ## Testing
 
 ### Run All Tests
