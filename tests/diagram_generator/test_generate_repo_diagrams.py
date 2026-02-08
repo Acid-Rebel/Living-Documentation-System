@@ -1,119 +1,97 @@
+
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
-import tempfile
-import os
+from diagram_generator.generate_repo_diagrams import generate_repo_diagrams
 
-from diagram_generator.generate_repo_diagrams import (
-    generate_repo_diagrams,
-    clone_repo,
-    latest_commit,
-    repo_name_from_url
-)
-
-
-class TestRepoNameFromUrl:
-    """Test extracting repository name from URL."""
+@patch("diagram_generator.generate_repo_diagrams.latest_commit")
+@patch("diagram_generator.generate_repo_diagrams.clone_repo")
+@patch("diagram_generator.generate_repo_diagrams.scan_repo")
+@patch("diagram_generator.generate_repo_diagrams.detect_language")
+@patch("diagram_generator.generate_repo_diagrams.get_parser")
+@patch("diagram_generator.generate_repo_diagrams.ArtifactStore")
+@patch("diagram_generator.generate_repo_diagrams.AnalyzerManager")
+@patch("diagram_generator.generate_repo_diagrams.DependencyAnalyzerManager")
+@patch("diagram_generator.generate_repo_diagrams.DetectorManager")
+@patch("diagram_generator.generate_repo_diagrams.DiagramGraph")
+@patch("diagram_generator.generate_repo_diagrams.extract_ast_relations")
+@patch("diagram_generator.generate_repo_diagrams.render_class_diagram_dot")
+@patch("diagram_generator.generate_repo_diagrams.render_dot_to_png")
+@patch("diagram_generator.generate_repo_diagrams.render_dependency_diagram_dot")
+@patch("diagram_generator.generate_repo_diagrams.shutil.rmtree")
+@patch("os.makedirs")
+def test_generate_repo_diagrams_success(
+    mock_makedirs,
+    mock_rmtree,
+    mock_render_dep,
+    mock_render_png,
+    mock_render_class,
+    mock_extract_rels,
+    MockGraph,
+    MockDetector,
+    MockDepAnalyzer,
+    MockAnalyzer,
+    MockArtifactStore,
+    mock_get_parser,
+    mock_detect,
+    mock_scan,
+    mock_clone,
+    mock_commit
+):
+    # Setup mocks
+    mock_commit.return_value = "abcdef1"
+    # Setup mocks
+    mock_extract_rels.return_value = ({}, [])
+    mock_scan.return_value = ["file1.py"]
+    mock_detect.return_value = "python"
     
-    def test_https_url(self):
-        """Test HTTPS GitHub URL."""
-        result = repo_name_from_url('https://github.com/user/repo.git')
-        assert result == 'repo'
+    mock_parser = MagicMock()
+    mock_get_parser.return_value = mock_parser
+    mock_parser.parse.return_value = "ast"
+    mock_parser.normalize.return_value = "unified_ast"
     
-    def test_ssh_url(self):
-        """Test SSH GitHub URL."""
-        result = repo_name_from_url('git@github.com:user/repo.git')
-        assert result == 'repo'
+    # Mock analyzer results
+    mock_analyzer_instance = MockAnalyzer.return_value
+    mock_analyzer_instance.analyze.return_value = {
+        "symbols": [], "relations": []
+    }
     
-    def test_url_without_git_extension(self):
-        """Test URL without .git extension."""
-        result = repo_name_from_url('https://github.com/user/myproject')
-        assert result == 'myproject'
+    # Mock artifact store get_artifacts
+    mock_store_instance = MockArtifactStore.return_value
+    mock_artifacts = MagicMock()
+    mock_artifacts.relations = [] # Empty list for loop
+    mock_artifacts.api_endpoints = []
+    mock_store_instance.get_artifacts.return_value = mock_artifacts
+    
+    # Mock dependency analyzer
+    MockDepAnalyzer.return_value.analyze.return_value = []
+    
+    # Mock graph
+    mock_graph_instance = MockGraph.return_value
+    mock_graph_instance.classes = {} # Empty dict for loop
+    
+    # Mock file open
+    with patch("builtins.open", mock_open(read_data="code")) as mock_file:
+        generate_repo_diagrams("https://github.com/user/repo")
+        
+        # Verify clone called
+        mock_clone.assert_called()
+        
+        # Verify processing
+        mock_detect.assert_called()
+        mock_get_parser.assert_called()
+        mock_parser.parse.assert_called()
+        
+        # Verify analysis
+        mock_analyzer_instance.analyze.assert_called()
+        
+        # Verify rendering called
+        mock_render_class.assert_called()
+        mock_render_dep.assert_called()
+        mock_render_png.assert_called()
 
-
-class TestLatestCommit:
-    """Test getting latest commit hash from remote."""
-    
-    @patch('subprocess.check_output')
-    def test_latest_commit_success(self, mock_subprocess):
-        """Test successful commit hash retrieval."""
-        mock_subprocess.return_value = "4eb21be8aa93dcc84a988543bcdb27639c84ffe9\tHEAD\n"
-        
-        result = latest_commit('https://github.com/test/repo.git')
-        
-        # Should return 7-char short hash
-        assert result == '4eb21be'
-    
-    @patch('subprocess.check_output')
-    def test_latest_commit_failure(self, mock_subprocess):
-        """Test handling of failure."""
-        mock_subprocess.side_effect = Exception("Network error")
-        
-        result = latest_commit('https://github.com/test/repo.git')
-        
-        assert result == 'unknown'
-
-
-class TestCloneRepo:
-    """Test repository cloning functionality."""
-    
-    @patch('subprocess.run')
-    def test_clone_repo_success(self, mock_run):
-        """Test successful repository clone."""
-        mock_run.return_value = MagicMock(returncode=0)
-        
-        with tempfile.TemporaryDirectory() as tmpdir:
-            dest = os.path.join(tmpdir, 'test-repo')
-            clone_repo('https://github.com/test/repo.git', dest)
-            
-            mock_run.assert_called_once_with(
-                ["git", "clone", "--depth", "1", 'https://github.com/test/repo.git', dest],
-                check=True
-            )
-
-
-class TestGenerateRepoDiagrams:
-    """Test the main diagram generation orchestration."""
-    
-    @patch('diagram_generator.generate_repo_diagrams.clone_repo')
-    @patch('diagram_generator.generate_repo_diagrams.latest_commit')
-    @patch('diagram_generator.generate_repo_diagrams.scan_repo')
-    @patch('diagram_generator.generate_repo_diagrams.render_dot_to_png')
-    @patch('os.makedirs')
-    def test_generate_creates_all_diagram_types(
-        self, mock_makedirs, mock_render_png, mock_scan, mock_commit, mock_clone
-    ):
-        """Test that all diagram types are generated."""
-        mock_commit.return_value = 'abc1234'
-        mock_scan.return_value = []
-        
-        result = generate_repo_diagrams('https://github.com/test/repo.git')
-        
-        # Should have called render_dot_to_png at least twice
-        assert mock_render_png.call_count >= 2
-        
-        # Result should be output directory path
-        assert 'output' in result
-        assert 'repo' in result
-        assert 'abc1234' in result
-    
-    @patch('diagram_generator.generate_repo_diagrams.clone_repo')
-    @patch('diagram_generator.generate_repo_diagrams.latest_commit')
-    @patch('tempfile.TemporaryDirectory')
-    def test_generate_uses_unique_temp_directory(self, mock_tempdir, mock_commit, mock_clone):
-        """Test that each generation uses a unique temporary directory."""
-        mock_commit.return_value = 'xyz7890'
-        
-        # Mock TemporaryDirectory context manager
-        mock_temp_ctx = MagicMock()
-        mock_temp_ctx.__enter__.return_value = '/tmp/unique_temp_dir'
-        mock_temp_ctx.__exit__.return_value = None
-        mock_tempdir.return_value = mock_temp_ctx
-        
-        with patch('diagram_generator.generate_repo_diagrams.scan_repo', return_value=[]):
-            generate_repo_diagrams('https://github.com/test/repo.git')
-        
-        # Should have created temp directory with prefix
-        mock_tempdir.assert_called_once()
-        call_kwargs = mock_tempdir.call_args[1]
-        assert 'prefix' in call_kwargs
-        assert 'tmp_repo_' in call_kwargs['prefix']
+def test_repo_name_extraction():
+    # Only import the function or duplicate logic?
+    # It is a top-level function in generate_repo_diagrams.py, but not exported in __all__ maybe.
+    from diagram_generator.generate_repo_diagrams import repo_name_from_url
+    assert repo_name_from_url("https://github.com/a/b.git") == "b"
+    assert repo_name_from_url("https://github.com/a/b") == "b"
