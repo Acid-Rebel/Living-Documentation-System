@@ -11,21 +11,23 @@ class EndpointExtractor:
         self.project_root = project_root
         self.endpoints = []
 
-    def extract(self, framework: str = "django", entry_point: str = "backend.urls") -> List[Dict[str, Any]]:
+    def extract(self, framework: str = "django", entry_point: Any = "backend.urls") -> List[Dict[str, Any]]:
         """
         Main method to extract endpoints.
         :param framework: 'django', 'flask', 'fastapi'
-        :param entry_point: Python path to URLconf (Django) or App instance (Flask/FastAPI)
+        :param entry_point: Python path (Django) or App instance (Flask/FastAPI)
         """
         if framework.lower() == 'django':
             return self._extract_django(entry_point)
+        elif framework.lower() == 'flask':
+            return self._extract_flask(entry_point)
+        elif framework.lower() == 'fastapi':
+            return self._extract_fastapi(entry_point)
         else:
             raise NotImplementedError(f"Framework '{framework}' not supported yet.")
 
     def _extract_django(self, urlconf_path: str) -> List[Dict[str, Any]]:
-        """
-        Extracts endpoints from a Django URLconf module.
-        """
+        # ... (implementation remains same, skipping for brevity in this replacement block if I could, but I need to replace the extract method too)
         try:
             urlconf = importlib.import_module(urlconf_path)
             patterns = getattr(urlconf, 'urlpatterns', [])
@@ -33,6 +35,40 @@ class EndpointExtractor:
         except (ImportError, AttributeError) as e:
             print(f"Error importing URLconf {urlconf_path}: {e}")
             return []
+
+    def _extract_flask(self, app) -> List[Dict[str, Any]]:
+        """
+        Extracts endpoints from a Flask app instance.
+        """
+        endpoints = []
+        for rule in app.url_map.iter_rules():
+            view_func = app.view_functions[rule.endpoint]
+            methods = list(rule.methods - {'HEAD', 'OPTIONS'}) if rule.methods else ['GET']
+            
+            endpoints.append({
+                'path': str(rule),
+                'method': methods,
+                'name': rule.endpoint,
+                'description': inspect.getdoc(view_func) or "",
+                'source': f"{view_func.__module__}.{view_func.__name__}"
+            })
+        return endpoints
+
+    def _extract_fastapi(self, app) -> List[Dict[str, Any]]:
+        """
+        Extracts endpoints from a FastAPI app instance.
+        """
+        endpoints = []
+        for route in app.routes:
+            if hasattr(route, 'path') and hasattr(route, 'methods'):
+                endpoints.append({
+                    'path': route.path,
+                    'method': list(route.methods),
+                    'name': route.name,
+                    'description': route.description or "",
+                    'source': f"{route.endpoint.__module__}.{route.endpoint.__name__}" if hasattr(route, 'endpoint') else "unknown"
+                })
+        return endpoints
 
     def _parse_django_patterns(self, patterns, prefix: str = "") -> List[Dict[str, Any]]:
         endpoints = []
