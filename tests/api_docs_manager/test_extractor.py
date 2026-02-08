@@ -47,5 +47,47 @@ class TestDjangoExtraction(unittest.TestCase):
             self.assertEqual(len(endpoints), 1)
             self.assertEqual(endpoints[0]['path'], "api/v1/users/")
 
+    def test_extract_flask(self):
+        # Mock Flask App
+        mock_app = MagicMock()
+        mock_rule = MagicMock()
+        mock_rule.__str__.return_value = "/flask/api"
+        mock_rule.endpoint = "flask_view"
+        mock_rule.methods = {'GET', 'POST'}
+        
+        mock_view_func = MagicMock()
+        mock_view_func.__name__ = "flask_view_func"
+        mock_view_func.__module__ = "app.views"
+        mock_view_func.__doc__ = "Flask docstring"
+
+        mock_app.url_map.iter_rules.return_value = [mock_rule]
+        mock_app.view_functions = {"flask_view": mock_view_func}
+
+        endpoints = self.extractor.extract(framework="flask", entry_point=mock_app)
+        
+        self.assertEqual(len(endpoints), 1)
+        self.assertEqual(endpoints[0]['path'], "/flask/api")
+        self.assertEqual(sorted(endpoints[0]['method']), ['GET', 'POST'])
+        self.assertEqual(endpoints[0]['name'], "flask_view")
+
+    def test_extract_fastapi(self):
+        # Mock FastAPI App
+        mock_app = MagicMock()
+        mock_route = MagicMock()
+        mock_route.path = "/fastapi/items"
+        mock_route.methods = {'GET'}
+        mock_route.name = "read_items"
+        mock_route.description = "FastAPI docstring"
+        mock_route.endpoint.__name__ = "read_items_func"
+        mock_route.endpoint.__module__ = "app.main"
+
+        mock_app.routes = [mock_route]
+
+        endpoints = self.extractor.extract(framework="fastapi", entry_point=mock_app)
+
+        self.assertEqual(len(endpoints), 1)
+        self.assertEqual(endpoints[0]['path'], "/fastapi/items")
+        self.assertEqual(endpoints[0]['method'], ['GET'])
+
 if __name__ == '__main__':
     unittest.main()
