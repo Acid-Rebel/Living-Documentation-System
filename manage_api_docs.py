@@ -17,8 +17,26 @@ def main():
     # 1. Extract
     print(f"Extracting endpoints from {args.entry} ({args.framework})...")
     extractor = EndpointExtractor(os.getcwd())
+    
+    entry_point = args.entry
+    if args.framework in ['flask', 'fastapi']:
+        # Load app instance from string "module:app"
+        try:
+            if ":" not in args.entry:
+                print("Error: For Flask/FastAPI, entry must be 'module:app'")
+                sys.exit(1)
+            module_name, app_name = args.entry.split(":")
+            import importlib
+            import sys
+            sys.path.insert(0, os.getcwd()) # Add CWD to path
+            module = importlib.import_module(module_name)
+            entry_point = getattr(module, app_name)
+        except Exception as e:
+            print(f"Error loading app '{args.entry}': {e}")
+            sys.exit(1)
+
     try:
-        endpoints = extractor.extract(args.framework, args.entry)
+        endpoints = extractor.extract(args.framework, entry_point)
     except Exception as e:
         print(f"Extraction failed: {e}")
         sys.exit(1)
