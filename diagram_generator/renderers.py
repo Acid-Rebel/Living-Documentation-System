@@ -248,7 +248,7 @@ def render_class_diagram(graph, focus_classes=None):
         lines.append("}")
 
     # ---------- Generalization / Specialization ----------
-    for parent, child in graph.inheritance:
+    for child, parent in graph.inheritance:
         if focus_classes and (parent not in focus_classes or child not in focus_classes):
             continue
         lines.append(f"{parent} <|-- {child}")
