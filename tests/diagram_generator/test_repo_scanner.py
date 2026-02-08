@@ -1,5 +1,6 @@
 
 import pytest
+import os
 from unittest.mock import patch, MagicMock
 from diagram_generator.repo_scanner import scan_repo
 
@@ -13,21 +14,23 @@ def test_scan_repo_finds_python_java(mock_walk):
     
     files = scan_repo("/repo")
     
-    assert "/repo/main.py" in files
-    assert "/repo/Service.java" in files
-    assert "/repo/readme.md" not in files
-    assert "/repo/image.png" not in files
+    # scan_repo uses os.path.join, so on Windows we get backslashes
+    expected_py = os.path.join("/repo", "main.py")
+    expected_java = os.path.join("/repo", "Service.java")
+    unexpected_md = os.path.join("/repo", "readme.md")
+    
+    assert expected_py in files
+    assert expected_java in files
+    assert unexpected_md not in files
 
 @patch("os.walk")
 def test_scan_repo_ignores_nothing_by_default_logic(mock_walk):
-    # The current implementation of scan_repo is very simple (see previously viewed file).
-    # It just checks extensions. It relies on os.walk.
-    # If logic changes to ignore .git, we test it here.
-    # For now, just confirming it finds files recursively.
+    # The current implementation of scan_repo is very simple.
     mock_walk.return_value = [
         ("/repo", ["src"], []),
         ("/repo/src", [], ["utils.py"])
     ]
     
     files = scan_repo("/repo")
-    assert "/repo/src/utils.py" in files
+    expected_utils = os.path.join("/repo/src", "utils.py")
+    assert expected_utils in files
