@@ -1,0 +1,194 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\HP\AppData\Local\Programs\Python\Python310\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.10.11', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.2.0', 'metadata': '3.1.1'}}
+rootdir: C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System
+plugins: html-4.2.0, metadata-3.1.1
+collecting ... collected 76 items / 15 errors
+
+=================================== ERRORS ====================================
+_____ ERROR collecting tests/api_detection/java/test_spring_detector 2.py _____
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\api_detection\java\test_spring_detector 2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\api_detection\java\test_spring_detector 2.py:11: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+______ ERROR collecting tests/api_detection/java/test_spring_detector.py ______
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\api_detection\java\test_spring_detector.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\api_detection\java\test_spring_detector.py:11: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+__________ ERROR collecting tests/api_docs_manager/test_generator.py __________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\api_docs_manager\test_generator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\api_docs_manager\test_generator.py:2: in <module>
+    from api_docs_manager.generator import APIDocGenerator
+api_docs_manager\generator.py:1: in <module>
+    import google.generativeai as genai
+E   ModuleNotFoundError: No module named 'google'
+___________ ERROR collecting tests/backend_api/test_api_views 2.py ____________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\backend_api\test_api_views 2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\backend_api\test_api_views 2.py:3: in <module>
+    from django.test import TestCase
+E   ModuleNotFoundError: No module named 'django'
+____________ ERROR collecting tests/backend_api/test_api_views.py _____________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\backend_api\test_api_views.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\backend_api\test_api_views.py:3: in <module>
+    from django.test import TestCase
+E   ModuleNotFoundError: No module named 'django'
+__________ ERROR collecting tests/backend_api/test_poll_service 2.py __________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\backend_api\test_poll_service 2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\backend_api\test_poll_service 2.py:3: in <module>
+    from django.test import TestCase
+E   ModuleNotFoundError: No module named 'django'
+___________ ERROR collecting tests/backend_api/test_poll_service.py ___________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\backend_api\test_poll_service.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\backend_api\test_poll_service.py:3: in <module>
+    from django.test import TestCase
+E   ModuleNotFoundError: No module named 'django'
+______ ERROR collecting tests/diagram_generator/test_ast_relations 2.py _______
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\diagram_generator\test_ast_relations 2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\diagram_generator\test_ast_relations 2.py:3: in <module>
+    from code_parser.parser_manager import get_parser
+code_parser\parser_manager.py:3: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+_______ ERROR collecting tests/diagram_generator/test_ast_relations.py ________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\diagram_generator\test_ast_relations.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\diagram_generator\test_ast_relations.py:3: in <module>
+    from code_parser.parser_manager import get_parser
+code_parser\parser_manager.py:3: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+__ ERROR collecting tests/diagram_generator/test_generate_repo_diagrams 2.py __
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\diagram_generator\test_generate_repo_diagrams 2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\diagram_generator\test_generate_repo_diagrams 2.py:6: in <module>
+    from diagram_generator.generate_repo_diagrams import (
+diagram_generator\generate_repo_diagrams.py:8: in <module>
+    from code_parser.parser_manager import get_parser
+code_parser\parser_manager.py:3: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+___ ERROR collecting tests/diagram_generator/test_generate_repo_diagrams.py ___
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\diagram_generator\test_generate_repo_diagrams.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\diagram_generator\test_generate_repo_diagrams.py:6: in <module>
+    from diagram_generator.generate_repo_diagrams import (
+diagram_generator\generate_repo_diagrams.py:8: in <module>
+    from code_parser.parser_manager import get_parser
+code_parser\parser_manager.py:3: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+_____________ ERROR collecting tests/parser/test_java_parser 2.py _____________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\parser\test_java_parser 2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\parser\test_java_parser 2.py:6: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+______________ ERROR collecting tests/parser/test_java_parser.py ______________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\parser\test_java_parser.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\parser\test_java_parser.py:6: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+___________ ERROR collecting tests/readme_manager/test_generator.py ___________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\readme_manager\test_generator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\readme_manager\test_generator.py:4: in <module>
+    from readme_manager.generator import ReadmeGenerator
+E   ModuleNotFoundError: No module named 'readme_manager.generator'
+_____________________ ERROR collecting tests/run_test.py ______________________
+ImportError while importing test module 'C:\Users\HP\OneDrive\Attachments\Desktop\6TH SEM\software\LIVING DOCUMENTATION GIT\Living-Documentation-System\tests\run_test.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\HP\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\run_test.py:1: in <module>
+    from diagram_generator.generate_repo_diagrams import generate_repo_diagrams
+diagram_generator\generate_repo_diagrams.py:8: in <module>
+    from code_parser.parser_manager import get_parser
+code_parser\parser_manager.py:3: in <module>
+    from code_parser.parsers.java_parser import JavaParser
+code_parser\parsers\java_parser.py:1: in <module>
+    import javalang
+E   ModuleNotFoundError: No module named 'javalang'
+=========================== short test summary info ===========================
+ERROR tests/api_detection/java/test_spring_detector 2.py
+ERROR tests/api_detection/java/test_spring_detector.py
+ERROR tests/api_docs_manager/test_generator.py
+ERROR tests/backend_api/test_api_views 2.py
+ERROR tests/backend_api/test_api_views.py
+ERROR tests/backend_api/test_poll_service 2.py
+ERROR tests/backend_api/test_poll_service.py
+ERROR tests/diagram_generator/test_ast_relations 2.py
+ERROR tests/diagram_generator/test_ast_relations.py
+ERROR tests/diagram_generator/test_generate_repo_diagrams 2.py
+ERROR tests/diagram_generator/test_generate_repo_diagrams.py
+ERROR tests/parser/test_java_parser 2.py
+ERROR tests/parser/test_java_parser.py
+ERROR tests/readme_manager/test_generator.py
+ERROR tests/run_test.py
+!!!!!!!!!!!!!!!!!! Interrupted: 15 errors during collection !!!!!!!!!!!!!!!!!!!
+============================= 15 errors in 0.41s ==============================
