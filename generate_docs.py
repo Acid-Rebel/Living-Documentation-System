@@ -19,6 +19,8 @@ def main():
         print("Done! Check README_gen.md")
     except Exception as e:
         print(f"Failed to generate documentation: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()

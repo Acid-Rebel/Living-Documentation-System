@@ -10,9 +10,6 @@ An automated system that generates and maintains living architecture diagrams fr
 - **Call Graphs**: Function and method call relationships
 - **API Diagrams**: REST API endpoints and their handlers
 
-<<<<<<< Updated upstream
-Test Commit
-=======
 ### 🔄 Automatic Updates
 - **Git Hooks**: Local post-commit hook triggers diagram regeneration
 - **Polling Service**: Background service monitors remote repositories for web-based commits
@@ -27,6 +24,10 @@ Test Commit
 - Python (Django, Flask, FastAPI)
 - Java (Spring Boot)
 - Extensible parser architecture for additional languages
+
+### 📄 AI-Powered Documentation
+- Automatic README generation using Gemini
+- Context-aware documentation based on project structure and code
 
 ## Architecture
 
@@ -97,6 +98,31 @@ npm run dev
 2. Click "Add New Project"
 3. Enter project name and Git repository URL
 4. Click "Generate Initial Diagrams"
+
+### Generating Documentation (README)
+
+You can automatically generate a README file for your project using the built-in generator powered by Gemini.
+
+1. **Set your API Key**:
+   ```bash
+   export GEMINI_API_KEY="YOUR_API_KEY"
+   # On Windows PowerShell:
+   # $env:GEMINI_API_KEY="YOUR_API_KEY"
+   ```
+
+2. **Run the Generator**:
+   ```bash
+   python generate_docs.py [OPTIONAL_API_KEY]
+   ```
+   
+   Or to generate for a specific project programmatically:
+   ```python
+   from readme_manager.generator import ReadmeGenerator
+   import os
+   
+   generator = ReadmeGenerator(project_root="/path/to/project", api_key="YOUR_KEY")
+   generator.render("README.md")
+   ```
 
 ### Automatic Updates
 
