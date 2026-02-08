@@ -15,6 +15,12 @@ const config: Config = {
                 'brand-dark': '#0f172a',
                 'brand-primary': '#3b82f6',
                 'brand-accent': '#8b5cf6',
+                // Professional Light Theme Colors
+                'brand-light-bg': '#f8fafc', // Slate-50
+                'brand-light-surface': '#ffffff', // White
+                'brand-light-text': '#0f172a', // Slate-900
+                'brand-light-muted': '#64748b', // Slate-500
+                'brand-light-border': '#e2e8f0', // Slate-200
             }
         },
     },
