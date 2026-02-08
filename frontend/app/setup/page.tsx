@@ -20,34 +20,34 @@ export default async function Setup() {
     return (
         <div className="w-full max-w-4xl">
             <div className="mb-6">
-                <Link href="/" className="text-blue-500 hover:text-blue-400">← Back to Home</Link>
+                <Link href="/" className="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</Link>
             </div>
 
-            <h1 className="text-3xl font-bold mb-6">Continuous Integration Setup</h1>
+            <h1 className="text-3xl font-bold mb-6 text-slate-900">Continuous Integration Setup</h1>
 
-            <p className="mb-6 text-gray-300">
+            <p className="mb-6 text-slate-600">
                 To automatically generate and update diagrams on every push, add this GitHub Action to your repository.
             </p>
 
             <div className="space-y-6">
                 <div className="step">
-                    <h3 className="text-xl font-semibold mb-2">1. Create the Workflow File</h3>
-                    <p className="text-gray-400 mb-2">Create a new file in your repository at:</p>
-                    <code className="bg-gray-800 px-3 py-1 rounded text-sm text-yellow-500">.github/workflows/doc-update.yml</code>
+                    <h3 className="text-xl font-semibold mb-2 text-slate-800">1. Create the Workflow File</h3>
+                    <p className="text-slate-600 mb-2">Create a new file in your repository at:</p>
+                    <code className="bg-slate-100 px-3 py-1 rounded text-sm text-yellow-600 border border-yellow-200">.github/workflows/doc-update.yml</code>
                 </div>
 
                 <div className="step">
-                    <h3 className="text-xl font-semibold mb-2">2. Paste the Configuration</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-slate-800">2. Paste the Configuration</h3>
                     <div className="relative">
-                        <pre className="p-6 rounded-xl bg-gray-900 border border-gray-700 overflow-x-auto text-sm">
-                            <code className="text-gray-300">{templateContent}</code>
+                        <pre className="p-6 rounded-xl bg-slate-900 text-slate-50 border border-slate-800 overflow-x-auto text-sm shadow-md">
+                            <code>{templateContent}</code>
                         </pre>
                     </div>
                 </div>
 
                 <div className="step">
-                    <h3 className="text-xl font-semibold mb-2">3. Configure Secrets (Optional)</h3>
-                    <p className="text-gray-400">
+                    <h3 className="text-xl font-semibold mb-2 text-slate-800">3. Configure Secrets (Optional)</h3>
+                    <p className="text-slate-600">
                         If your backend is protected, you may need to add authentication headers in the `curl` command using GitHub Secrets.
                     </p>
                 </div>
