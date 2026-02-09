@@ -6,10 +6,13 @@ import {
   ArrowLeft,
   Calendar,
   RefreshCw,
-  Trash2,
   Download,
   X,
+  FileText,
+  FileDown,
 } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import 'github-markdown-css/github-markdown.css';
 
 /* ================= TYPES ================= */
 
@@ -25,6 +28,7 @@ interface DiagramVersion {
   commit_hash: string;
   commit_message: string;
   image_file: string;
+  readme_content?: string;
   created_at: string;
   images?: DiagramImage[];
 }
@@ -45,9 +49,11 @@ export default function ProjectDetail() {
   const [project, setProject] = useState<Project | null>(null);
   const [selectedVersion, setSelectedVersion] =
     useState<DiagramVersion | null>(null);
+
+  const [showReadme, setShowReadme] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState<DiagramImage | null>(null);
+  const [lightboxImage, setLightboxImage] =
+    useState<DiagramImage | null>(null);
 
   /* ================= FETCH ================= */
 
@@ -61,13 +67,41 @@ export default function ProjectDetail() {
     const data = await res.json();
 
     setProject(data);
+
     if (!selectedVersion && data.diagrams.length > 0) {
       setSelectedVersion(data.diagrams[0]);
     }
+
     setLoading(false);
   };
 
-  /* ================= HELPERS ================= */
+  const downloadApiSummary = async () => {
+    if (!project) return;
+    try {
+      // Show some loading indicator if needed (using global loading or toast)
+      // For now we just await.
+      const res = await fetch(`http://localhost:8000/api/projects/${project.id}/api_summary/`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${project.name}_api_summary.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      } else {
+        console.error("Failed to download PDF");
+        alert("Failed to generate PDF. Check backend logs.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error downloading PDF");
+    }
+  };
+
+  /* ================= GROUP IMAGES ================= */
 
   const groupedImages =
     selectedVersion?.images?.reduce((acc, img) => {
@@ -76,23 +110,24 @@ export default function ProjectDetail() {
       return acc;
     }, {} as Record<string, DiagramImage[]>) || {};
 
-  /* ================= UI ================= */
+  /* ================= LOADING ================= */
 
   if (loading)
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         Loading...
       </div>
     );
 
   if (!project) return null;
 
+  /* ================= UI ================= */
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* ================= HEADER ================= */}
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex flex-wrap gap-3 justify-between items-center">
-          {/* left */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => router.push("/")}
@@ -102,122 +137,158 @@ export default function ProjectDetail() {
             </button>
 
             <div className="truncate">
-              <h1 className="font-semibold text-slate-900 truncate">
-                {project.name}
-              </h1>
+              <h1 className="font-semibold truncate">{project.name}</h1>
               <p className="text-xs text-blue-600 truncate">
                 {project.repo_url}
               </p>
             </div>
           </div>
 
-          {/* right */}
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => fetchProject(project.id)}
-              className="px-3 md:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-            >
-              <RefreshCw size={14} />
-              Sync
-            </button>
-
-            <button
-              onClick={() => router.push("/")}
-              className="px-3 md:px-4 py-2 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100"
-            >
-              Delete
-            </button>
-          </div>
+          <button
+            onClick={() => fetchProject(project.id)}
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <RefreshCw size={14} />
+            Sync
+          </button>
         </div>
       </header>
 
       {/* ================= CONTENT ================= */}
-      {/* stack on mobile, row on desktop */}
-      <main className="flex-1 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-4 md:gap-6 p-4 md:p-8 overflow-hidden">
+      <main className="flex-1 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6 p-4 md:p-8 overflow-hidden">
         {/* ================= SIDEBAR ================= */}
-        <aside
-          className="
-          w-full lg:w-72
-          bg-white rounded-xl border border-slate-200 shadow-sm
-          max-h-64 lg:max-h-none
-          overflow-y-auto
-        "
-        >
-          <div className="p-3 font-semibold text-slate-700 flex items-center gap-2 border-b bg-slate-50">
-            <Calendar size={14} />
-            History
+        <aside className="w-full lg:w-72 bg-white rounded-xl border shadow-sm overflow-y-auto">
+          {/* ===== Sidebar Header ===== */}
+          <div className="p-3 border-b bg-slate-50 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-semibold text-slate-700">
+              <Calendar size={14} />
+              History
+            </div>
+
+            {/* 🔥 SWITCH TOGGLE */}
+            <div className="flex items-center gap-2 select-none">
+              <span
+                className={`text-xs font-medium transition-colors ${!showReadme ? "text-indigo-600" : "text-slate-400"
+                  }`}
+              >
+                Diagrams
+              </span>
+
+              <button
+                onClick={() => setShowReadme(!showReadme)}
+                className={`relative w-11 h-6 rounded-full transition-all duration-300
+                  ${showReadme ? "bg-indigo-600" : "bg-slate-300"}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow-md
+                    transition-transform duration-300
+                    ${showReadme ? "translate-x-5" : ""}`}
+                />
+              </button>
+
+              <span
+                className={`text-xs font-medium transition-colors ${showReadme ? "text-indigo-600" : "text-slate-400"
+                  }`}
+              >
+                Readme
+              </span>
+            </div>
           </div>
 
+          {/* ===== Actions ===== */}
+          <div className="p-3 border-b bg-slate-50">
+            <button
+              onClick={downloadApiSummary}
+              className="w-full py-2 text-xs font-medium flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+              title="Generate and Download API Documentation PDF"
+            >
+              <FileDown size={14} />
+              Download API Summary
+            </button>
+          </div>
+
+          {/* ===== Versions List ===== */}
           <div className="p-2 space-y-2">
             {project.diagrams.map((v) => (
               <div
                 key={v.id}
                 onClick={() => setSelectedVersion(v)}
                 className={`p-2 rounded-lg cursor-pointer text-sm
-                ${
-                  selectedVersion?.id === v.id
+                  ${selectedVersion?.id === v.id
                     ? "bg-blue-50 border border-blue-200"
                     : "hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 <p className="font-mono text-xs text-slate-500">
                   {v.commit_hash.slice(0, 7)}
                 </p>
-                <p className="truncate">{v.commit_message || "No message"}</p>
+                <p className="truncate">
+                  {v.commit_message || "No message"}
+                </p>
               </div>
             ))}
           </div>
         </aside>
 
-        {/* ================= GALLERY ================= */}
-        <section className="flex-1 overflow-y-auto space-y-8">
-          {Object.entries(groupedImages).map(([type, imgs]) => (
-            <div key={type}>
-              <h3 className="text-base md:text-lg font-semibold mb-4 text-slate-900">
-                {type}
-              </h3>
-
-              {/* responsive grid */}
-              <div
-                className="
-                grid gap-4 md:gap-6
-                grid-cols-1
-                sm:grid-cols-2
-                lg:grid-cols-3
-                xl:grid-cols-4
-              "
-              >
-                {imgs.map((img) => (
-                  <div
-                    key={img.id}
-                    onClick={() => setLightboxImage(img)}
-                    className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer overflow-hidden"
-                  >
-                    <div className="aspect-video bg-slate-50 flex items-center justify-center">
-                      <img
-                        src={img.image_file}
-                        className="object-contain p-3 max-h-full"
-                      />
-                    </div>
-
-                    <div className="p-2 flex justify-between items-center border-t text-sm">
-                      <span className="truncate">{img.description}</span>
-
-                      <a
-                        href={img.image_file}
-                        download
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1.5 hover:bg-slate-100 rounded"
-                      >
-                        <Download size={14} />
-                      </a>
-                    </div>
-                  </div>
-                ))}
+        {/* ================= MAIN VIEW ================= */}
+        {showReadme ? (
+          /* ===== README VIEW ===== */
+          <section className="flex-1 overflow-y-auto bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            {selectedVersion?.readme_content ? (
+              <div className="markdown-body">
+                <ReactMarkdown>{selectedVersion.readme_content}</ReactMarkdown>
               </div>
-            </div>
-          ))}
-        </section>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-slate-500 min-h-[300px]">
+                <FileText size={48} className="mb-4 opacity-20" />
+                <p className="font-semibold text-lg text-slate-700">No Documentation Available</p>
+                <p className="text-sm max-w-md text-center mt-2">
+                  A README has not been generated for this version yet.
+                  Trigger a new sync to generate one.
+                </p>
+              </div>
+            )}
+          </section>
+        ) : (
+          /* ===== DIAGRAM VIEW ===== */
+          <section className="flex-1 overflow-y-auto space-y-8">
+            {Object.entries(groupedImages).map(([type, imgs]) => (
+              <div key={type}>
+                <h3 className="font-semibold text-lg mb-4">{type}</h3>
+
+                <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {imgs.map((img) => (
+                    <div
+                      key={img.id}
+                      onClick={() => setLightboxImage(img)}
+                      className="bg-white rounded-xl border shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer overflow-hidden"
+                    >
+                      <div className="aspect-video bg-slate-50 flex items-center justify-center">
+                        <img
+                          src={img.image_file}
+                          className="object-contain p-3 max-h-full"
+                        />
+                      </div>
+
+                      <div className="p-2 flex justify-between items-center border-t text-sm">
+                        <span className="truncate">{img.description}</span>
+
+                        <a
+                          href={img.image_file}
+                          download
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 hover:bg-slate-100 rounded"
+                        >
+                          <Download size={14} />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
       </main>
 
       {/* ================= LIGHTBOX ================= */}
@@ -226,19 +297,10 @@ export default function ProjectDetail() {
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
           onClick={() => setLightboxImage(null)}
         >
-          <div className="relative max-w-full max-h-full">
-            <button
-              className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded"
-              onClick={() => setLightboxImage(null)}
-            >
-              <X size={18} />
-            </button>
-
-            <img
-              src={lightboxImage.image_file}
-              className="max-w-[95vw] max-h-[85vh] rounded-xl bg-white shadow-xl"
-            />
-          </div>
+          <img
+            src={lightboxImage.image_file}
+            className="max-w-[95vw] max-h-[85vh] rounded-xl bg-white shadow-xl"
+          />
         </div>
       )}
     </div>
