@@ -4,6 +4,7 @@ from jinja2 import Environment, FileSystemLoader
 import typing
 import json
 import traceback
+from dotenv import load_dotenv
 
 class ReadmeGenerator:
     def __init__(self, project_root: str, api_key: str):
@@ -121,6 +122,7 @@ class ReadmeGenerator:
 
 if __name__ == "__main__":
     import sys
+    load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
     if len(sys.argv) > 1:
         api_key = sys.argv[1]
@@ -129,5 +131,4 @@ if __name__ == "__main__":
         generator = ReadmeGenerator(os.getcwd(), api_key)
         generator.render("README_gen.md")
     else:
-        print("Please provide GEMINI_API_KEY")
-
+        print("Please provide GEMINI_API_KEY in .env or as argument")
