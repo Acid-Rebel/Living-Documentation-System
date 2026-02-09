@@ -53,6 +53,7 @@ export default function ProjectDetail() {
 
   const [activeTab, setActiveTab] = useState<'diagrams' | 'readme' | 'summary'>('diagrams');
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [lightboxImage, setLightboxImage] =
     useState<DiagramImage | null>(null);
 
@@ -74,6 +75,28 @@ export default function ProjectDetail() {
     }
 
     setLoading(false);
+  };
+
+  const handleSync = async () => {
+    if (!project || isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const res = await fetch(`http://localhost:8000/api/projects/${project.id}/refresh/`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        // Re-fetch project to get new data
+        await fetchProject(project.id);
+      } else {
+        const err = await res.json();
+        alert(`Sync failed: ${err.error || 'Unknown error'}`);
+      }
+    } catch (e) {
+      console.error("Sync error:", e);
+      alert("Sync failed. See console.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const downloadApiSummary = async () => {
@@ -139,18 +162,19 @@ export default function ProjectDetail() {
             </div>
           </div>
           <button
-            onClick={() => fetchProject(project.id)}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-all active:scale-95"
+            onClick={handleSync}
+            disabled={isSyncing}
+            className={`px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-all active:scale-95 ${isSyncing ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            <RefreshCw size={14} />
-            <span className="hidden sm:inline">Sync</span>
+            <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
+            <span className="hidden sm:inline">{isSyncing ? "Syncing..." : "Sync"}</span>
           </button>
         </div>
       </header>
 
       {/* ================= MAIN LAYOUT ================= */}
       <main className="flex-1 flex overflow-hidden max-w-[1600px] mx-auto w-full p-4 md:p-6 gap-6">
-        
+
         {/* ================= SIDEBAR (History) ================= */}
         <aside className="hidden lg:flex flex-col w-72 flex-none bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between">
@@ -159,7 +183,7 @@ export default function ProjectDetail() {
               History
             </div>
           </div>
-          
+
           <div className="p-3 border-b">
             <button
               onClick={downloadApiSummary}
@@ -176,8 +200,8 @@ export default function ProjectDetail() {
                 key={v.id}
                 onClick={() => setSelectedVersion(v)}
                 className={`w-full text-left p-3 rounded-xl transition-all border
-                  ${selectedVersion?.id === v.id 
-                    ? "bg-blue-50 border-blue-200 shadow-sm" 
+                  ${selectedVersion?.id === v.id
+                    ? "bg-blue-50 border-blue-200 shadow-sm"
                     : "hover:bg-slate-50 border-transparent"}`}
               >
                 <p className="font-mono text-[10px] text-blue-500 font-bold uppercase mb-1">
@@ -193,7 +217,7 @@ export default function ProjectDetail() {
 
         {/* ================= CONTENT AREA ================= */}
         <div className="flex-1 flex flex-col min-w-0 relative">
-          
+
           {/* STICKY NAVIGATION PILL */}
           <div className="absolute top-4 left-0 right-0 z-30 flex justify-center pointer-events-none">
             <nav className="pointer-events-auto bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl rounded-full p-1.5 flex items-center gap-1">
@@ -202,8 +226,8 @@ export default function ProjectDetail() {
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
                   className={`px-6 sm:px-10 py-2 text-sm font-bold rounded-full transition-all capitalize
-                    ${activeTab === tab 
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
+                    ${activeTab === tab
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                       : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"}`}
                 >
                   {tab}
@@ -214,7 +238,7 @@ export default function ProjectDetail() {
 
           {/* ===== SCROLLABLE CONTENT BODY ===== */}
           <div className="flex-1 overflow-y-auto pt-20 pb-10 px-1 scrollbar-hide">
-            
+
             {activeTab === 'readme' && (
               <div className="bg-[#0d1117] p-6 md:p-10 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in zoom-in-95 duration-300">
                 <div className="markdown-body !max-w-none">
@@ -247,15 +271,15 @@ export default function ProjectDetail() {
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {imgs.map((img) => (
-                        <div 
-                          key={img.id} 
-                          onClick={() => setLightboxImage(img)} 
+                        <div
+                          key={img.id}
+                          onClick={() => setLightboxImage(img)}
                           className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden group"
                         >
                           <div className="aspect-video bg-slate-50 flex items-center justify-center p-6">
-                            <img 
-                              src={img.image_file} 
-                              className="object-contain max-h-full drop-shadow-md group-hover:scale-110 transition-transform duration-500" 
+                            <img
+                              src={img.image_file}
+                              className="object-contain max-h-full drop-shadow-md group-hover:scale-110 transition-transform duration-500"
                             />
                           </div>
                           <div className="p-4 border-t bg-white flex justify-between items-center">
