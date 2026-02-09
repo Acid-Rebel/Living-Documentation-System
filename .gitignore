@@ -68,3 +68,6 @@ htmlcov/
 # Logs
 *.log
 logs/
+
+#environment 
+.env

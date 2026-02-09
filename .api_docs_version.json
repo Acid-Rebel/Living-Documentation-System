@@ -1,0 +1,29 @@
+[
+  {
+    "path": "/static/<path:filename>",
+    "method": [
+      "GET"
+    ],
+    "name": "static",
+    "description": "Here's an enhanced description of the API endpoint:\n\n**Endpoint: `['GET'] /static/<path:filename>`**\n\n**Function: `static`**\n\n**Description: Serves static files (e.g., images, CSS, JavaScript) from a designated directory on the server. The `<filename>` parameter specifies the path to the requested file relative to the static file directory.**",
+    "source": "flask.app.<lambda>"
+  },
+  {
+    "path": "/api/v1/users",
+    "method": [
+      "GET"
+    ],
+    "name": "list_users",
+    "description": "```\n## Enhanced API Endpoint Documentation\n\n**Endpoint:** `GET /api/v1/users`\n\n**Function:** `list_users`\n\n**Summary:**  [**DEPRECATED**] Retrieves a list of all users. This endpoint is no longer supported and may be removed in future versions.\n```\n\n**Explanation of Changes & Rationale:**\n\n* **Clear and Concise Summary:**  Instead of just saying \"List all users.\", the summary explicitly states the endpoint *retrieves* a list.\n* **Emphasis on Deprecation:** The `[**DEPRECATED**]` tag is added at the very beginning of the summary to immediately draw attention to its unsupported status.  Making it bolded and bracketed enhances its visibility.\n* **Warning of Potential Removal:**  Adding \"...and may be removed in future versions\" reinforces the message that developers should not rely on this endpoint.  This proactively encourages migration to a supported alternative.\n* **Professional Tone:**  The language used is professional and avoids jargon.\n\n**Why this is better:**\n\nThis enhanced documentation immediately informs the user:\n\n1.  **What the endpoint *did*:**  It retrieves a list of all users.\n2.  **Its current status:** It's DEPRECATED and therefore unreliable.\n3.  **Future implications:** It might disappear entirely.\n\nThis clarity helps developers understand the situation quickly and avoid using an endpoint that will eventually break their application.  It strongly encourages them to look for a replacement.",
+    "source": "dummy_flask.list_users"
+  },
+  {
+    "path": "/api/v1/profile",
+    "method": [
+      "GET"
+    ],
+    "name": "get_profile",
+    "description": "```\n## Enhanced API Endpoint Documentation:\n\n**Endpoint:** `GET /api/v1/profile`\n\n**Function:** `get_profile`\n\n**Description:** Retrieves the authenticated user's profile information.  This endpoint returns details about the user, such as their name, email, and other profile-specific attributes.\n\n**Further Considerations (Not explicitly in description, but good to think about for full documentation):**\n\n*   **Authentication:**  *How* does the user authenticate to access this endpoint? (e.g., via API key, JWT, OAuth 2.0)\n*   **Request Parameters:** Are there any query parameters accepted? (e.g., `fields=name,email` to only retrieve specific fields)\n*   **Response Format:**  What is the response format (e.g., JSON, XML)? Provide a sample response.\n*   **Response Codes:** What HTTP status codes can be returned and what do they mean? (e.g., 200 OK, 401 Unauthorized, 404 Not Found)\n*   **Error Handling:**  What error messages are returned in case of an error?\n*   **Rate Limiting:** Is there any rate limiting applied to this endpoint?\n```\n\n**Explanation of Enhancements:**\n\n*   **More descriptive:**  The revised description provides more context about what \"profile information\" likely entails (name, email, etc.).\n*   **Clarifies Authenticated User:** It emphasizes that the endpoint retrieves the *authenticated* user's profile. This is a crucial piece of information.\n*   **Adds Important Considerations:** The \"Further Considerations\" section highlights important aspects that are often missing from basic endpoint documentation. This promotes a more complete and useful documentation set.  While not directly added to the description *yet*, these considerations should inform the full documentation.",
+    "source": "dummy_flask.get_profile"
+  }
+]

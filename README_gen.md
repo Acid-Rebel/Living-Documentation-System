@@ -1,42 +1,45 @@
-# Living Documentation System
+# Project
 
 ![Language](https://img.shields.io/badge/language-Python-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## Overview
-The Living Documentation System is a tool designed to automatically generate and maintain up-to-date documentation for software projects. It analyzes code repositories, extracts semantic information, and creates various diagrams, including class diagrams and API endpoint documentation. This system aims to simplify documentation efforts and ensure accuracy.
+Automated documentation generation failed.
 
 ## Features
 
-- **Automated Diagram Generation**: Generates class diagrams, dependency graphs, and API documentation directly from the codebase.
-
-- **API Endpoint Detection**: Automatically discovers and documents API endpoints within Python and Java projects using frameworks like Django, FastAPI, Flask, and Spring.
-
-- **Versioned Documentation**: Stores documentation versions associated with specific commit hashes, enabling historical documentation views.
-
-- **Web-based Interface**: Provides a Django-based web interface for browsing projects and their associated diagrams.
-
-- **Webhook Integration**: Supports webhook integration to trigger documentation updates automatically upon new code commits.
-
 
 ## Architecture
-The system consists of several modules. The `api_endpoint_detector` analyzes code to identify API endpoints. The `analysis_store` houses data models for storing extracted artifacts. The Django-based `backend` provides the API and web interface, managing projects, diagrams, and webhook integrations.  Diagrams are generated server-side. `generate_docs.py` is the diagram generator.  `diagram_generator.generate_repo_diagrams` is the generator invoked by the API.
+N/A
 
 ## Project Structure
 ```
 Living-Documentation-System/
+    API_DOCS.md
+    API_DOCS.pdf
     conftest.py
+    dummy_flask.py
     example.py
     generate_docs.py
     list_models.py
+    manage_api_docs.py
     QUICKSTART.md
     README.md
+    README_gen.md
     REQUIREMENTS.md
     requirements.txt
     run_tests.py
+    TestStartegy.md
+    test_output.txt
+    verify_api_docs.md
     analysis_store/
         artifact_store.py
         models.py
+    api_docs_manager/
+        extractor.py
+        generator.py
+        version_control.py
+        __init__.py
     api_endpoint_detector/
         base_detector.py
         detector_manager.py
@@ -52,6 +55,7 @@ Living-Documentation-System/
         manage.py
         requirements-dev.txt
         requirements.txt
+        test
         api/
             admin.py
             apps.py
@@ -60,20 +64,6 @@ Living-Documentation-System/
             serializers.py
             tests.py
             urls.py
-            views.py
-            __init__.py
-            migrations/
-                0001_initial.py
-                0002_alter_project_repo_url.py
-                0003_diagramimage.py
-                0004_project_last_commit_hash.py
-                __init__.py
-        backend/
-            asgi.py
-            settings.py
-            urls.py
-            wsgi.py
-            __init__.py
 ```
 
 ## Setup
@@ -92,21 +82,9 @@ Living-Documentation-System/
    ```
 
 ## Usage
-1. Install the necessary dependencies from `requirements.txt`. 2. Configure the Django backend. 3. Create a new project via the web interface, providing the repository URL. 4. The system will automatically analyze the repository and generate initial diagrams.  Webhooks can be configured to trigger updates on commits.
+N/A
 
 ## API Endpoints
-
-- `GET /projects/`: Lists all projects.
-
-- `POST /projects/`: Creates a new project.
-
-- `GET /projects/{id}/`: Retrieves details of a specific project, including diagrams.
-
-- `POST /projects/{id}/refresh/`: Triggers a refresh of the diagrams for a specific project.
-
-- `GET /projects/{id}/history/`: Retrieves the history of diagrams for a specific project.
-
-- `POST /webhook/commit/`: Webhook endpoint to trigger diagram generation on code commit.
 
 
 ## Contributing

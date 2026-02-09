@@ -1,11 +1,13 @@
 import argparse
 import os
 import sys
+from dotenv import load_dotenv
 from api_docs_manager.extractor import EndpointExtractor
 from api_docs_manager.version_control import APIVersionManager
 from api_docs_manager.generator import APIDocGenerator
 
 def main():
+    load_dotenv()
     parser = argparse.ArgumentParser(description="Manage API Documentation")
     parser.add_argument("--framework", required=True, choices=["django", "flask", "fastapi"])
     parser.add_argument("--entry", required=True, help="Entry point (e.g. backend.urls)")
@@ -16,6 +18,8 @@ def main():
     
     args = parser.parse_args()
     
+    api_key = args.key or os.getenv("GEMINI_API_KEY")
+
     # ... (Extraction logic same) ...
     # 1. Extract
     print(f"Extracting endpoints from {args.entry} ({args.framework})...")
@@ -60,10 +64,10 @@ def main():
         
     # 3. Generate Docs
     print("Generating documentation...")
-    if args.key:
+    if api_key:
         print("Gemini enhancement enabled.")
     
-    generator = APIDocGenerator(api_key=args.key)
+    generator = APIDocGenerator(api_key=api_key)
     markdown = generator.generate_markdown(endpoints, diff)
     
     with open(args.output, "w", encoding="utf-8") as f:
