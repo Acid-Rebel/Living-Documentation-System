@@ -104,15 +104,11 @@ npm run dev
 You can automatically generate a README file for your project using the built-in generator powered by Gemini.
 
 1. **Set your API Key**:
-   ```bash
-   export GEMINI_API_KEY="YOUR_API_KEY"
-   # On Windows PowerShell:
-   # $env:GEMINI_API_KEY="YOUR_API_KEY"
-   ```
+   Ensure `GEMINI_API_KEY` is set in your `.env` file (see [Configuration](#configuration)).
 
 2. **Run the Generator**:
    ```bash
-   python generate_docs.py [OPTIONAL_API_KEY]
+   python readme_manager/generator.py [OPTIONAL_API_KEY]
    ```
    
    Or to generate for a specific project programmatically:
@@ -120,7 +116,8 @@ You can automatically generate a README file for your project using the built-in
    from readme_manager.generator import ReadmeGenerator
    import os
    
-   generator = ReadmeGenerator(project_root="/path/to/project", api_key="YOUR_KEY")
+   # Key is automatically loaded from .env if not provided
+   generator = ReadmeGenerator(project_root="/path/to/project", api_key=None) 
    generator.render("README.md")
    ```
 
@@ -149,7 +146,11 @@ Automatically generate, version, and enhance your API documentation.
 
 1. **Run the Manager**:
    ```bash
-   python manage_api_docs.py --framework [django|flask|fastapi] --entry [module.urls|module:app] --key [OPTIONAL_GEMINI_KEY] --pdf [OPTIONAL_OUTPUT.pdf]
+   # Key is loaded from .env
+   python manage_api_docs.py --framework [django|flask|fastapi] --entry [module.urls|module:app] --pdf [OPTIONAL_OUTPUT.pdf]
+   
+   # Or provide key explicitly
+   python manage_api_docs.py --framework [django|flask|fastapi] --entry [module.urls|module:app] --key [YOUR_KEY]
    ```
 
 2. **Features**:
@@ -210,6 +211,7 @@ DEBUG=True
 SECRET_KEY=your-secret-key-here
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
 ### Polling Interval
@@ -247,4 +249,3 @@ MIT License - see LICENSE file for details
 - Built with Django, Next.js, and GraphViz
 - AST parsing powered by Python's `ast` module and `javalang`
 - Diagram rendering via GraphViz DOT language
->>>>>>> Stashed changes
