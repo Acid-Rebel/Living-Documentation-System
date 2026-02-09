@@ -25,6 +25,7 @@ class DiagramVersion(models.Model):
     commit_message = models.TextField(blank=True)
     author = models.CharField(max_length=255, blank=True)
     image_file = models.ImageField(upload_to=project_directory_path)
+    readme_content = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

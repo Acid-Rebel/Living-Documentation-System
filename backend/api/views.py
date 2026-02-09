@@ -85,6 +85,63 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = DiagramVersionSerializer(diagrams, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['get'])
+    def api_summary(self, request, pk=None):
+        """Generates and returns a PDF summary of the API."""
+        project = self.get_object()
+        try:
+            # 1. Setup Temp Dir & Clone
+            temp_dir = os.path.join(settings.BASE_DIR, f"_temp_api_{uuid.uuid4()}")
+            from diagram_generator.generate_repo_diagrams import clone_repo
+            clone_repo(project.repo_url, temp_dir)
+            
+            # 2. Generate API Markdown
+            api_key = os.environ.get("GEMINI_API_KEY") or "AIzaSyChmVigeUutJFexLHs5n_OCHiDlxOYkgS8"
+            from .api_doc_generator import ApiDocGenerator
+            generator = ApiDocGenerator(temp_dir, api_key)
+            markdown_content = generator.generate_api_docs()
+            
+            # 3. Convert to PDF
+            from .pdf_service import convert_markdown_to_pdf
+            pdf_filename = f"{project.name}_api_summary.pdf"
+            pdf_path = os.path.join(temp_dir, pdf_filename)
+            
+            success = convert_markdown_to_pdf(markdown_content, pdf_path)
+            
+            if not success or not os.path.exists(pdf_path):
+                 return Response({"error": "PDF generation failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                 
+            # 4. Return File Response
+            from django.http import FileResponse
+            # Note: We open securely, but we need to ensure it's not deleted before streaming finishes.
+            # FileResponse usually handles file handle closure. 
+            # However, prompt cleanup of temp_dir is tricky with FileResponse streaming.
+            # For simplicity in this context, we will read into memory or rely on OS/cleanup later, 
+            # BUT efficient way is to read content and delete file.
+            
+            f = open(pdf_path, 'rb')
+            response = FileResponse(f, as_attachment=True, filename=pdf_filename)
+            
+            # Hook to clean up file after response closed? 
+            # Django doesn't natively support "delete after send" easily without subclassing.
+            # We will use a threading timer or simplified cleanup for now (or let OS/cron handle temp).
+            # BETTER: Read into IOBytes and cleanup immediately.
+            
+            content_bytes = f.read()
+            f.close()
+            # Cleanup immediately
+            shutil.rmtree(temp_dir, onerror=remove_readonly_and_retry)
+            
+            from django.http import HttpResponse
+            response = HttpResponse(content_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{pdf_filename}"'
+            return response
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 from .models import Project, DiagramVersion, DiagramImage # Ensure DiagramImage imported if not already
 
 def process_and_save_diagram(project, commit_hash, commit_message, author):
@@ -169,6 +226,51 @@ def process_and_save_diagram(project, commit_hash, commit_message, author):
         # Clean up temporary generation output
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir, onerror=remove_readonly_and_retry)
+            
+        # 7. Generate README
+        try:
+             # Cloning again for README might be redundant if we could reuse output_dir, 
+             # but output_dir was from diagram_generator which might not be a full clone or cleaned up.
+             # Ideally, we should do this BEFORE cleanup of output_dir if output_dir contains the full repo.
+             # However, generate_repo_diagrams returns the path to the *output* of diagrams, not necessarily the repo source.
+             # So we will clone separately for now to be safe and modular, or better, implement a dedicated service function.
+             
+             # For MVP, let's implement the logic inline or call a helper.
+             # We need the repo source code. 
+             # Let's clone to a temp dir for README generation.
+             
+             temp_readme_dir = os.path.join(settings.BASE_DIR, f"_temp_readme_{uuid.uuid4()}")
+             from diagram_generator.generate_repo_diagrams import clone_repo # Reuse clone function
+             clone_repo(project.repo_url, temp_readme_dir)
+             
+             # API Key
+             api_key = os.environ.get("GEMINI_API_KEY") or "AIzaSyChmVigeUutJFexLHs5n_OCHiDlxOYkgS8" # Fallback/Hardcoded
+             
+             # Generate
+             from readme_manager.generator import ReadmeGenerator
+             generator = ReadmeGenerator(temp_readme_dir, api_key)
+             
+             # We want the content string, not just a file. 
+             # The current generator.render writes to file. 
+             # We can use generator.generate_content() and rendering logic manually, or let it render to file and read it back.
+             readme_out_path = os.path.join(temp_readme_dir, "GENERATED_README.md")
+             generator.render(readme_out_path)
+             
+             if os.path.exists(readme_out_path):
+                 with open(readme_out_path, 'r', encoding='utf-8') as f:
+                     version.readme_content = f.read()
+                 version.save()
+                 
+        except Exception as e:
+            print(f"README generation failed: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+             if os.path.exists(temp_readme_dir):
+                 try:
+                    shutil.rmtree(temp_readme_dir, onerror=remove_readonly_and_retry)
+                 except: pass
+
         return version
 
 class WebhookView(APIView):
