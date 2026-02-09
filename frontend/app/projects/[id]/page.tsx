@@ -29,6 +29,7 @@ interface DiagramVersion {
   commit_message: string;
   image_file: string;
   readme_content?: string;
+  summary_content?: string;
   created_at: string;
   images?: DiagramImage[];
 }
@@ -50,7 +51,7 @@ export default function ProjectDetail() {
   const [selectedVersion, setSelectedVersion] =
     useState<DiagramVersion | null>(null);
 
-  const [showReadme, setShowReadme] = useState(false);
+  const [activeTab, setActiveTab] = useState<'diagrams' | 'readme' | 'summary'>('diagrams');
   const [loading, setLoading] = useState(true);
   const [lightboxImage, setLightboxImage] =
     useState<DiagramImage | null>(null);
@@ -124,171 +125,154 @@ export default function ProjectDetail() {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
       {/* ================= HEADER ================= */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
+      <header className="flex-none bg-white border-b border-slate-200 z-50">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => router.push("/")}
-              className="p-2 rounded-lg hover:bg-slate-100"
-            >
+            <button onClick={() => router.push("/")} className="p-2 rounded-lg hover:bg-slate-100">
               <ArrowLeft size={20} />
             </button>
-
             <div className="truncate">
-              <h1 className="font-semibold truncate">{project.name}</h1>
-              <p className="text-xs text-blue-600 truncate">
-                {project.repo_url}
-              </p>
+              <h1 className="font-semibold text-slate-800 truncate">{project.name}</h1>
+              <p className="text-xs text-blue-600 truncate">{project.repo_url}</p>
             </div>
           </div>
-
           <button
             onClick={() => fetchProject(project.id)}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-all active:scale-95"
           >
             <RefreshCw size={14} />
-            Sync
+            <span className="hidden sm:inline">Sync</span>
           </button>
         </div>
       </header>
 
-      {/* ================= CONTENT ================= */}
-      <main className="flex-1 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6 p-4 md:p-8 overflow-hidden">
-        {/* ================= SIDEBAR ================= */}
-        <aside className="w-full lg:w-72 bg-white rounded-xl border shadow-sm overflow-y-auto">
-          {/* ===== Sidebar Header ===== */}
-          <div className="p-3 border-b bg-slate-50 flex items-center justify-between">
+      {/* ================= MAIN LAYOUT ================= */}
+      <main className="flex-1 flex overflow-hidden max-w-[1600px] mx-auto w-full p-4 md:p-6 gap-6">
+        
+        {/* ================= SIDEBAR (History) ================= */}
+        <aside className="hidden lg:flex flex-col w-72 flex-none bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between">
             <div className="flex items-center gap-2 font-semibold text-slate-700">
-              <Calendar size={14} />
+              <Calendar size={16} className="text-slate-400" />
               History
             </div>
-
-            {/* 🔥 SWITCH TOGGLE */}
-            <div className="flex items-center gap-2 select-none">
-              <span
-                className={`text-xs font-medium transition-colors ${!showReadme ? "text-indigo-600" : "text-slate-400"
-                  }`}
-              >
-                Diagrams
-              </span>
-
-              <button
-                onClick={() => setShowReadme(!showReadme)}
-                className={`relative w-11 h-6 rounded-full transition-all duration-300
-                  ${showReadme ? "bg-indigo-600" : "bg-slate-300"}`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full shadow-md
-                    transition-transform duration-300
-                    ${showReadme ? "translate-x-5" : ""}`}
-                />
-              </button>
-
-              <span
-                className={`text-xs font-medium transition-colors ${showReadme ? "text-indigo-600" : "text-slate-400"
-                  }`}
-              >
-                Readme
-              </span>
-            </div>
           </div>
-
-          {/* ===== Actions ===== */}
-          <div className="p-3 border-b bg-slate-50">
+          
+          <div className="p-3 border-b">
             <button
               onClick={downloadApiSummary}
-              className="w-full py-2 text-xs font-medium flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
-              title="Generate and Download API Documentation PDF"
+              className="w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors"
             >
               <FileDown size={14} />
-              Download API Summary
+              Download API Doc
             </button>
           </div>
 
-          {/* ===== Versions List ===== */}
-          <div className="p-2 space-y-2">
+          <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-slate-200">
             {project.diagrams.map((v) => (
-              <div
+              <button
                 key={v.id}
                 onClick={() => setSelectedVersion(v)}
-                className={`p-2 rounded-lg cursor-pointer text-sm
-                  ${selectedVersion?.id === v.id
-                    ? "bg-blue-50 border border-blue-200"
-                    : "hover:bg-slate-50"
-                  }`}
+                className={`w-full text-left p-3 rounded-xl transition-all border
+                  ${selectedVersion?.id === v.id 
+                    ? "bg-blue-50 border-blue-200 shadow-sm" 
+                    : "hover:bg-slate-50 border-transparent"}`}
               >
-                <p className="font-mono text-xs text-slate-500">
+                <p className="font-mono text-[10px] text-blue-500 font-bold uppercase mb-1">
                   {v.commit_hash.slice(0, 7)}
                 </p>
-                <p className="truncate">
-                  {v.commit_message || "No message"}
+                <p className="text-sm font-medium text-slate-700 line-clamp-2 leading-snug">
+                  {v.commit_message || "Automatic Web Update"}
                 </p>
-              </div>
+              </button>
             ))}
           </div>
         </aside>
 
-        {/* ================= MAIN VIEW ================= */}
-        {showReadme ? (
-          /* ===== README VIEW ===== */
-          <section className="flex-1 overflow-y-auto bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            {selectedVersion?.readme_content ? (
-              <div className="markdown-body">
-                <ReactMarkdown>{selectedVersion.readme_content}</ReactMarkdown>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500 min-h-[300px]">
-                <FileText size={48} className="mb-4 opacity-20" />
-                <p className="font-semibold text-lg text-slate-700">No Documentation Available</p>
-                <p className="text-sm max-w-md text-center mt-2">
-                  A README has not been generated for this version yet.
-                  Trigger a new sync to generate one.
-                </p>
-              </div>
-            )}
-          </section>
-        ) : (
-          /* ===== DIAGRAM VIEW ===== */
-          <section className="flex-1 overflow-y-auto space-y-8">
-            {Object.entries(groupedImages).map(([type, imgs]) => (
-              <div key={type}>
-                <h3 className="font-semibold text-lg mb-4">{type}</h3>
+        {/* ================= CONTENT AREA ================= */}
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          
+          {/* STICKY NAVIGATION PILL */}
+          <div className="absolute top-4 left-0 right-0 z-30 flex justify-center pointer-events-none">
+            <nav className="pointer-events-auto bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl rounded-full p-1.5 flex items-center gap-1">
+              {['diagrams', 'readme', 'summary'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`px-6 sm:px-10 py-2 text-sm font-bold rounded-full transition-all capitalize
+                    ${activeTab === tab 
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-                <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {imgs.map((img) => (
-                    <div
-                      key={img.id}
-                      onClick={() => setLightboxImage(img)}
-                      className="bg-white rounded-xl border shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer overflow-hidden"
-                    >
-                      <div className="aspect-video bg-slate-50 flex items-center justify-center">
-                        <img
-                          src={img.image_file}
-                          className="object-contain p-3 max-h-full"
-                        />
-                      </div>
-
-                      <div className="p-2 flex justify-between items-center border-t text-sm">
-                        <span className="truncate">{img.description}</span>
-
-                        <a
-                          href={img.image_file}
-                          download
-                          onClick={(e) => e.stopPropagation()}
-                          className="p-1.5 hover:bg-slate-100 rounded"
-                        >
-                          <Download size={14} />
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+          {/* ===== SCROLLABLE CONTENT BODY ===== */}
+          <div className="flex-1 overflow-y-auto pt-20 pb-10 px-1 scrollbar-hide">
+            
+            {activeTab === 'readme' && (
+              <div className="bg-[#0d1117] p-6 md:p-10 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in zoom-in-95 duration-300">
+                <div className="markdown-body !max-w-none">
+                  <ReactMarkdown>{selectedVersion?.readme_content || ""}</ReactMarkdown>
                 </div>
               </div>
-            ))}
-          </section>
-        )}
+            )}
+
+            {activeTab === 'summary' && (
+              <div className="bg-[#0d1117] p-6 md:p-10 rounded-3xl border border-slate-800 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+                  <span className="w-2 h-8 bg-blue-500 rounded-full"></span>
+                  Summary
+                </h2>
+                <div className="markdown-body !max-w-none prose-invert">
+                  <ReactMarkdown>{selectedVersion?.summary_content || ""}</ReactMarkdown>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'diagrams' && (
+              <div className="space-y-10 animate-in fade-in duration-300">
+                {Object.entries(groupedImages).map(([type, imgs]) => (
+                  <div key={type} className="space-y-4">
+                    <h3 className="text-xl font-bold text-slate-800 px-2 flex items-center gap-2 capitalize">
+                      {type}
+                      <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                        {imgs.length}
+                      </span>
+                    </h3>
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {imgs.map((img) => (
+                        <div 
+                          key={img.id} 
+                          onClick={() => setLightboxImage(img)} 
+                          className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden group"
+                        >
+                          <div className="aspect-video bg-slate-50 flex items-center justify-center p-6">
+                            <img 
+                              src={img.image_file} 
+                              className="object-contain max-h-full drop-shadow-md group-hover:scale-110 transition-transform duration-500" 
+                            />
+                          </div>
+                          <div className="p-4 border-t bg-white flex justify-between items-center">
+                            <span className="text-sm font-bold text-slate-600 truncate">{img.description}</span>
+                            <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                              <Download size={14} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </main>
 
       {/* ================= LIGHTBOX ================= */}
