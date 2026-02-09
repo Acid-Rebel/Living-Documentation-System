@@ -10,7 +10,7 @@ class DiagramVersionSerializer(serializers.ModelSerializer):
     images = DiagramImageSerializer(many=True, read_only=True)
     class Meta:
         model = DiagramVersion
-        fields = ['id', 'commit_hash', 'commit_message', 'author', 'image_file', 'readme_content', 'created_at', 'images']
+        fields = ['id', 'commit_hash', 'commit_message', 'author', 'image_file', 'readme_content', 'summary_content', 'created_at', 'images']
 
 class ProjectSerializer(serializers.ModelSerializer):
     latest_diagram = serializers.SerializerMethodField()

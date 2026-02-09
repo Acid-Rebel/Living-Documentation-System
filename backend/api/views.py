@@ -260,9 +260,18 @@ def process_and_save_diagram(project, commit_hash, commit_message, author):
                  with open(readme_out_path, 'r', encoding='utf-8') as f:
                      version.readme_content = f.read()
                  version.save()
+            
+             # 8. Generate Summary (NLP)
+             try:
+                 from .summary_generator import SummaryGenerator
+                 summary_gen = SummaryGenerator(temp_readme_dir, api_key)
+                 version.summary_content = summary_gen.generate_summary()
+                 version.save()
+             except Exception as e:
+                 print(f"Summary generation failed: {e}")
                  
         except Exception as e:
-            print(f"README generation failed: {e}")
+            print(f"README/Summary generation failed: {e}")
             import traceback
             traceback.print_exc()
         finally:
