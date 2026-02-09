@@ -28,3 +28,9 @@ mypy==1.13.0
 
 # Utilities
 python-dotenv==1.0.1
+
+# AI Documentation Generation
+google-generativeai
+Jinja2
+markdown
+xhtml2pdf
