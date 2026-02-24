@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 
-const inter = Inter({ subsets: ["latin"] });
+const displayFont = Space_Grotesk({
+    subsets: ["latin"],
+    variable: "--font-display",
+});
+
+const monoFont = IBM_Plex_Mono({
+    subsets: ["latin"],
+    weight: ["400", "500", "700"],
+    variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
     title: "Living Documentation System",
@@ -16,10 +25,12 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={`${inter.className} bg-slate-50 text-slate-900`}>
+        <html lang="en" className="scroll-smooth">
+            <body
+                className={`${displayFont.variable} ${monoFont.variable} font-display bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100`}
+            >
                 <Navbar />
-                <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <main className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {children}
                 </main>
             </body>

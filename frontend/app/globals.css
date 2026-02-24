@@ -3,16 +3,64 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 15, 23, 42; /* Dark Text */
-  --background-start-rgb: 248, 250, 252; /* Light Background */
-  --background-end-rgb: 255, 255, 255; /* White */
+  color-scheme: light;
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 255, 255, 255;
+  --panel-rgb: 255, 255, 255;
+  --panel-muted-rgb: 241, 245, 249;
+  --border-rgb: 226, 232, 240;
+  --accent-rgb: 37, 99, 235;
+  --accent-soft-rgb: 219, 234, 254;
+  --glow-rgb: 56, 189, 248;
+}
+
+.dark {
+  color-scheme: dark;
+  --foreground-rgb: 226, 232, 240;
+  --background-start-rgb: 9, 13, 24;
+  --background-end-rgb: 15, 23, 42;
+  --panel-rgb: 15, 23, 42;
+  --panel-muted-rgb: 17, 24, 39;
+  --border-rgb: 51, 65, 85;
+  --accent-rgb: 56, 189, 248;
+  --accent-soft-rgb: 14, 116, 144;
+  --glow-rgb: 14, 165, 233;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom,
-      rgb(var(--background-start-rgb)),
-      rgb(var(--background-end-rgb)));
+  background:
+    radial-gradient(circle at top left, rgba(var(--glow-rgb), 0.2), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(var(--accent-rgb), 0.1), transparent 40%),
+    linear-gradient(180deg, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(var(--border-rgb), 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(var(--border-rgb), 0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .glass-panel {
+    background-color: rgba(var(--panel-rgb), 0.85);
+    border: 1px solid rgba(var(--border-rgb), 0.7);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(12px);
+  }
+
+  .mono-caption {
+    font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+  }
+
+  .card-glow {
+    box-shadow: 0 16px 40px rgba(var(--accent-rgb), 0.12);
+  }
 }

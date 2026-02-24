@@ -10,8 +10,8 @@ function DashboardContent() {
 
   if (!imageUrl) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <p className="text-slate-500 text-lg">No diagram selected</p>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p className="text-slate-500 dark:text-slate-400 text-lg">No diagram selected</p>
         <Link
           href="/"
           className="mt-6 px-5 py-2 rounded-lg bg-blue-600 text-white shadow hover:bg-blue-700 transition"
@@ -23,40 +23,42 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       {/* Top Header */}
-      <header className="w-full bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+      <header className="w-full bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/70 dark:border-slate-800">
+        <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">
             Architecture Dashboard
           </h1>
 
-          <Link
-            href="/"
-            className="px-4 py-2 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 text-sm font-medium transition"
-          >
-            Generate Another
-          </Link>
-          <a
-            href={imageUrl}
-            download="diagram.png"
-            className="ml-3 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium shadow hover:bg-blue-700 transition flex items-center gap-2"
-          >
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="px-4 py-2 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 text-sm font-medium transition"
+            >
+              Generate Another
+            </Link>
+            <a
+              href={imageUrl}
+              download="diagram.png"
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium shadow hover:bg-blue-700 transition flex items-center gap-2"
+            >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
             Download PNG
-          </a>
+            </a>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-10 flex flex-col gap-10">
+      <main className="max-w-[1400px] mx-auto px-6 py-10 flex flex-col gap-10">
         {/* Diagram Section */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-lg font-semibold text-slate-800 mb-5">
+        <section className="bg-white/80 dark:bg-slate-900/80 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-800 p-6">
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-5">
             Latest Diagram
           </h2>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-100 p-4 flex items-center justify-center">
+          <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950 p-4 flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imageUrl}
@@ -84,12 +86,12 @@ function DashboardContent() {
           ].map((item) => (
             <div
               key={item.title}
-              className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition"
+              className="bg-white/80 dark:bg-slate-900/80 p-6 rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm hover:shadow-md transition"
             >
-              <h3 className="font-semibold text-slate-900 mb-2">
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
                 {item.title}
               </h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 {item.desc}
               </p>
             </div>
