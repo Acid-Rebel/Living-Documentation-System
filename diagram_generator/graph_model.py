@@ -1,4 +1,4 @@
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 
 class ClassInfo:
@@ -30,9 +30,23 @@ class DiagramGraph:
         self.aggregation: Set[tuple[str, str]] = set()    # (class, class)
         self.calls: Set[tuple[str, str]] = set()          # (class, class) ✅ FIX
         self.calls_heuristic: Set[tuple[str, str]] = set()
-        
+
         # (src, dst) -> label (e.g. "1..*")
         self.multiplicity: Dict[tuple[str, str], str] = {}
+
+        # ---- API Call Diagram data ----
+        # Each entry: {"endpoint": str, "http_method": str, "handler": str,
+        #              "framework": str, "file_path": str, "callers": List[str]}
+        self.api_calls: List[dict] = []
+
+        # ---- ER Diagram data ----
+        # entity_name -> {"attributes": List[str], "relations": List[(target, label)]}
+        self.entities: Dict[str, dict] = {}
+
+        # ---- Architecture Flow Diagram data ----
+        # High-level layer/module nodes and directed flows between them
+        self.arch_nodes: Set[str] = set()                        # layer names
+        self.arch_flows: Set[tuple[str, str, str]] = set()       # (src_layer, dst_layer, label)
 
 
     def load_from_semantics(self, symbols, relations):
