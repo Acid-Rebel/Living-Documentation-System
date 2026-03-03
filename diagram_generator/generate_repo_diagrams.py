@@ -27,6 +27,19 @@ from diagram_generator.renderers import (
     group_calls_by_module,
 )
 
+from diagram_generator.api_call_diagram import (
+    build_api_call_graph,
+    render_api_call_diagram_dot,
+)
+from diagram_generator.er_diagram import (
+    build_er_graph,
+    render_er_diagram_dot,
+)
+from diagram_generator.arch_flow_diagram import (
+    build_arch_graph,
+    render_arch_flow_diagram_dot,
+)
+
 OUTPUT_BASE_DIR = "output"
 
 
@@ -177,11 +190,45 @@ def generate_repo_diagrams(repo_url):
             dot = render_call_diagram_dot(graph, focus_classes=classes)
             render_dot_to_png(dot, png_path)
 
-        # API Diagram
+        # API Diagram (existing endpoint registry diagram)
         if artifacts.api_endpoints:
             api_png = os.path.join(out_dir, "api_diagram.png")
             api_dot = render_api_diagram_dot(artifacts.api_endpoints)
             render_dot_to_png(api_dot, api_png)
+
+        # -----------------------------------------------------------------
+        # NEW: API Call Diagram
+        # Shows endpoint → handler → callee call chains
+        # -----------------------------------------------------------------
+        api_call_graph = build_api_call_graph(artifacts, graph)
+        if api_call_graph:
+            api_call_png = os.path.join(out_dir, "api_call_diagram.png")
+            api_call_dot = render_api_call_diagram_dot(api_call_graph)
+            render_dot_to_png(api_call_dot, api_call_png)
+            print(f"  [API Call Diagram] {len(api_call_graph)} endpoint(s) rendered.")
+
+        # -----------------------------------------------------------------
+        # NEW: ER Diagram
+        # Derives entities from classes that have attributes and maps
+        # composition/aggregation edges as ER relationships
+        # -----------------------------------------------------------------
+        er_graph = build_er_graph(graph)
+        if er_graph["entities"]:
+            er_png = os.path.join(out_dir, "er_diagram.png")
+            er_dot = render_er_diagram_dot(er_graph)
+            render_dot_to_png(er_dot, er_png)
+            print(f"  [ER Diagram] {len(er_graph['entities'])} entity/entities rendered.")
+
+        # -----------------------------------------------------------------
+        # NEW: Architecture Flow Diagram
+        # Groups modules into architectural layers and shows data flows
+        # -----------------------------------------------------------------
+        arch_graph = build_arch_graph(artifacts, graph)
+        if arch_graph["nodes"]:
+            arch_png = os.path.join(out_dir, "arch_flow_diagram.png")
+            arch_dot = render_arch_flow_diagram_dot(arch_graph)
+            render_dot_to_png(arch_dot, arch_png)
+            print(f"  [Arch Flow Diagram] {len(arch_graph['layers'])} layer(s) rendered.")
 
         print(f"✅ Diagrams generated at {out_dir}")
         return out_dir
