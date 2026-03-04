@@ -1,12 +1,3 @@
-
-### ⚠️ Announcement: Shifting focus to AsyncReview
----
-
-**IMPORTANT UPDATE** Living Documentation System-Open maintenance is ongoing, but primary active development is moving to **[AsyncReview](https://github.com/AsyncFuncAI/AsyncReview/)**. Thank you for the support on this project; please join me in the new repository for this year's primary effort.
-
----
----
-
 # Living Documentation System-Open
 
 ![Living Documentation System Banner](screenshots/Deepwiki.png)
@@ -18,10 +9,90 @@
 3. Create visual diagrams to explain how everything works
 4. Organize it all into an easy-to-navigate wiki
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/sheing)
-[![Tip in Crypto](https://tip.md/badge.svg)](https://tip.md/sng-asyncfunc)
-[![Twitter/X](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://x.com/sashimikun_void)
-[![Discord](https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/VQMBGR8u5v)
+## Architecture
+```mermaid
+flowchart TB
+
+subgraph L1["Repository Ingestion Layer"]
+A[User submits repository URL]
+B{Repository Access Type}
+C[Secure Repository Cloning]
+D[Access Token Authentication]
+
+A --> B
+B -->|Public| C
+B -->|Private| D --> C
+end
+
+
+subgraph L2["Repository Understanding Layer"]
+E[Repository Structure Extraction]
+F[Semantic Code Analyzer]
+G[Code Embedding Generator]
+H[Knowledge Index Builder]
+I[Repository Knowledge Graph]
+
+C --> E --> F --> G --> H --> I
+end
+
+
+subgraph L3["AI Intelligence Layer"]
+J[AI Model Routing Engine]
+K1[Google Gemini]
+K2[OpenAI Models]
+K3[OpenRouter]
+K4[Local Ollama Models]
+K5[Azure AI Models]
+
+I --> J
+J --> K1
+J --> K2
+J --> K3
+J --> K4
+J --> K5
+end
+
+
+subgraph L4["Documentation & Architecture Generation"]
+L[Structured Documentation Engine]
+M[System Architecture Extraction]
+N[Automatic Diagram Generator]
+O[Component Dependency Visualizer]
+
+K1 --> L
+K2 --> L
+K3 --> L
+K4 --> L
+K5 --> L
+
+G --> M --> N --> O
+end
+
+
+subgraph L5["Living Documentation Engine"]
+P[Documentation Knowledge Organizer]
+Q[Version Aware Documentation Evolution]
+R[Interactive Module Documentation]
+S[Dynamic Code Documentation Linking]
+
+L --> P
+O --> P
+P --> Q
+P --> R
+P --> S
+end
+
+
+subgraph L6["User Interaction Layer"]
+T[Unified Knowledge Interface]
+U[Interactive Living Documentation System]
+
+Q --> T
+R --> T
+S --> T
+T --> U
+end
+```
 
 [English](./README.md) | [简体中文](./README.zh.md) | [繁體中文](./README.zh-tw.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [한국어](./README.kr.md) | [Tiếng Việt](./README.vi.md) | [Português Brasileiro](./README.pt-br.md) | [Français](./README.fr.md) | [Русский](./README.ru.md)
 
@@ -640,23 +711,6 @@ To use DeepResearch, simply toggle the "Deep Research" switch in the Ask interfa
 - **"Cannot connect to API server"**: Make sure the API server is running on port 8001
 - **"CORS error"**: The API is configured to allow all origins, but if you're having issues, try running both frontend and backend on the same machine
 
-### Generation Issues
-- **"Error generating wiki"**: For very large repositories, try a smaller one first
-- **"Invalid repository format"**: Make sure you're using a valid GitHub, GitLab or Bitbucket URL format
-- **"Could not fetch repository structure"**: For private repositories, ensure you've entered a valid personal access token with appropriate permissions
-- **"Diagram rendering error"**: The app will automatically try to fix broken diagrams
-
-### Common Solutions
-1. **Restart both servers**: Sometimes a simple restart fixes most issues
-2. **Check console logs**: Open browser developer tools to see any JavaScript errors
-3. **Check API logs**: Look at the terminal where the API is running for Python errors
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to:
-- Open issues for bugs or feature requests
-- Submit pull requests to improve the code
-- Share your feedback and ideas
 
 ## 📄 License
 
