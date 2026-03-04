@@ -682,22 +682,6 @@ DeepResearch takes repository analysis to the next level with a multi-turn resea
 
 To use DeepResearch, simply toggle the "Deep Research" switch in the Ask interface before submitting your question.
 
-## Screenshots
-
-![Living Documentation System Main Interface](screenshots/Interface.png)
-*The main interface of Living Documentation System*
-
-![Private Repository Support](screenshots/privaterepo.png)
-*Access private repositories with personal access tokens*
-
-![DeepResearch Feature](screenshots/DeepResearch.png)
-*DeepResearch conducts multi-turn investigations for complex topics*
-
-### Demo Video
-
-[![Living Documentation System Demo Video](https://img.youtube.com/vi/zGANs8US8B4/0.jpg)](https://youtu.be/zGANs8US8B4)
-
-*Watch Living Documentation System in action!*
 
 ## ❓ Troubleshooting
 
