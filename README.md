@@ -30,6 +30,89 @@ An automated system that generates and maintains living architecture diagrams fr
 - Context-aware documentation based on project structure and code
 
 ## Architecture
+```mermaid
+flowchart TB
+
+subgraph L1["Repository Ingestion Layer"]
+A[User submits repository URL]
+B{Repository Access Type}
+C[Secure Repository Cloning]
+D[Access Token Authentication]
+
+A --> B
+B -->|Public| C
+B -->|Private| D --> C
+end
+
+
+subgraph L2["Repository Understanding Layer"]
+E[Repository Structure Extraction]
+F[Semantic Code Analyzer]
+G[Code Embedding Generator]
+H[Knowledge Index Builder]
+I[Repository Knowledge Graph]
+
+C --> E --> F --> G --> H --> I
+end
+
+
+subgraph L3["AI Intelligence Layer"]
+J[AI Model Routing Engine]
+K1[Google Gemini]
+K2[OpenAI Models]
+K3[OpenRouter]
+K4[Local Ollama Models]
+K5[Azure AI Models]
+
+I --> J
+J --> K1
+J --> K2
+J --> K3
+J --> K4
+J --> K5
+end
+
+
+subgraph L4["Documentation & Architecture Generation"]
+L[Structured Documentation Engine]
+M[System Architecture Extraction]
+N[Automatic Diagram Generator]
+O[Component Dependency Visualizer]
+
+K1 --> L
+K2 --> L
+K3 --> L
+K4 --> L
+K5 --> L
+
+G --> M --> N --> O
+end
+
+
+subgraph L5["Living Documentation Engine"]
+P[Documentation Knowledge Organizer]
+Q[Version Aware Documentation Evolution]
+R[Interactive Module Documentation]
+S[Dynamic Code Documentation Linking]
+
+L --> P
+O --> P
+P --> Q
+P --> R
+P --> S
+end
+
+
+subgraph L6["User Interaction Layer"]
+T[Unified Knowledge Interface]
+U[Interactive Living Documentation System]
+
+Q --> T
+R --> T
+S --> T
+T --> U
+end
+```
 
 ### Backend (Django)
 - RESTful API for project management
