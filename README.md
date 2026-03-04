@@ -229,16 +229,56 @@ time.sleep(20)  # Poll every 20 seconds
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Testing Coverage
+## Proposed Architecture
+graph TD
 
-Current test coverage: **65%** for diagram_generator module
+A[User submits repository URL<br>GitHub / GitLab / Bitbucket] --> B{Repository Access Type}
 
-- `heuristics.py`: 100%
-- `ast_relations.py`: 93%
-- `repo_scanner.py`: 93%
-- `ast_traverser.py`: 81%
+B -->|Public Repository| C[Secure Repository Cloning]
+B -->|Private Repository| D[User Authentication<br>Access Token Integration]
+D --> C
 
-See `TESTING_SUMMARY.md` for detailed coverage report.
+C --> E[Repository Structure Extraction]
+
+E --> F[Semantic Code Analyzer]
+F --> G[Code Embedding Generator]
+
+G --> H[Knowledge Index Builder]
+H --> I[Repository Knowledge Graph Construction]
+
+I --> J[AI Model Routing Layer]
+
+J -->|Google Gemini| K1[AI Documentation Generation]
+J -->|OpenAI Models| K2[AI Documentation Generation]
+J -->|OpenRouter| K3[AI Documentation Generation]
+J -->|Local Ollama Models| K4[AI Documentation Generation]
+J -->|Azure AI Models| K5[AI Documentation Generation]
+
+K1 --> L[Structured Documentation Engine]
+K2 --> L
+K3 --> L
+K4 --> L
+K5 --> L
+
+G --> M[System Architecture Extraction Engine]
+
+M --> N[Automatic Diagram Generator]
+N --> O[Component & Dependency Visualizer]
+
+L --> P[Documentation Knowledge Organizer]
+O --> P
+
+P --> Q[Living Documentation Engine]
+
+Q --> R[Version-Aware Documentation Evolution]
+Q --> S[Interactive Module-Level Documentation]
+Q --> T[Dynamic Code-to-Documentation Linking]
+
+R --> U[Unified Knowledge Interface]
+S --> U
+T --> U
+
+U --> V[Interactive Living Documentation System]
 
 ## License
 
