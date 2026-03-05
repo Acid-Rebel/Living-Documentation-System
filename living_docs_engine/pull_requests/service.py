@@ -51,3 +51,33 @@ class PRService:
             pr.status = PRStatus.APPROVED
         else:
             pr.status = PRStatus.OPEN
+
+    def merge_pr(self, pr_id: str, merged_by: str) -> DocumentationPR:
+        pr = self.get_pr(pr_id)
+        if not pr:
+            raise ValueError(f"PR with ID {pr_id} not found.")
+            
+        if pr.status in [PRStatus.MERGED, PRStatus.CLOSED]:
+            raise ValueError("PR is already merged or closed.")
+            
+        # For this iteration, same user can merge, but PR needs to be either directly merged or approved.
+        # We will allow direct merges by the author for simplicity as per requirements ("the same user can create the pull request and the same person can merge it").
+        
+        pr.status = PRStatus.MERGED
+        pr.merged_at = datetime.utcnow()
+        pr.merged_by = merged_by
+        pr.updated_at = datetime.utcnow()
+        
+        return pr
+        
+    def close_pr(self, pr_id: str) -> DocumentationPR:
+        pr = self.get_pr(pr_id)
+        if not pr:
+            raise ValueError(f"PR with ID {pr_id} not found.")
+            
+        if pr.status in [PRStatus.MERGED, PRStatus.CLOSED]:
+            raise ValueError("PR is already merged or closed.")
+            
+        pr.status = PRStatus.CLOSED
+        pr.updated_at = datetime.utcnow()
+        return pr
