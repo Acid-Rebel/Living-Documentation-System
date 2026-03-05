@@ -8,17 +8,19 @@ from semantic_insights.java.import_analyzer import JavaImportAnalyzer
 from semantic_insights.java.symbol_analyzer import JavaSymbolAnalyzer
 from semantic_insights.models.relation import Relation
 from semantic_insights.models.symbol import Symbol
+from semantic_insights.models.summary import Summary
 
 T = TypeVar("T")
 from semantic_insights.python.call_analyzer import PythonCallAnalyzer
 from semantic_insights.python.import_analyzer import PythonImportAnalyzer
 from semantic_insights.python.symbol_analyzer import PythonSymbolAnalyzer
+from semantic_insights.python.summarizer_analyzer import PythonSummarizerAnalyzer
 
 
 class AnalyzerManager:
     def __init__(self) -> None:
         self._symbol_analyzers: Dict[str, List[BaseAnalyzer]] = {
-            "python": [PythonSymbolAnalyzer()],
+            "python": [PythonSymbolAnalyzer(), PythonSummarizerAnalyzer()],
             "java": [JavaSymbolAnalyzer()],
         }
         self._relation_analyzers: Dict[str, List[BaseAnalyzer]] = {
