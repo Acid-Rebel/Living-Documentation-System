@@ -35,7 +35,7 @@ def test_streaming_endpoint(repo_url, query, file_path=None):
     
     try:
         # Make the request with streaming enabled
-        response = requests.post(url, json=payload, stream=True)
+        response = requests.post(url, json=payload, stream=True, timeout=60)
         
         # Check if the request was successful
         if response.status_code != 200:
