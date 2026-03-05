@@ -26,3 +26,28 @@ class PRService:
 
     def list_prs(self) -> List[DocumentationPR]:
         return list(self._prs.values())
+        
+    def add_review(self, pr_id: str, reviewer_id: str, status: ReviewStatus, comment: Optional[str] = None) -> Review:
+        pr = self.get_pr(pr_id)
+        if not pr:
+            raise ValueError(f"PR with ID {pr_id} not found.")
+            
+        if pr.status in [PRStatus.MERGED, PRStatus.CLOSED]:
+            raise ValueError("Cannot review a closed or merged PR.")
+            
+        review = Review(reviewer_id=reviewer_id, status=status, comment=comment)
+        pr.reviews.append(review)
+        
+        # Update PR status based on reviews
+        self._update_pr_status(pr)
+        pr.updated_at = datetime.utcnow()
+        return review
+        
+    def _update_pr_status(self, pr: DocumentationPR):
+        """Helper to deduce PRStatus based on reviews."""
+        if any(r.status == ReviewStatus.CHANGES_REQUESTED for r in pr.reviews):
+            pr.status = PRStatus.REJECTED
+        elif any(r.status == ReviewStatus.APPROVED for r in pr.reviews):
+            pr.status = PRStatus.APPROVED
+        else:
+            pr.status = PRStatus.OPEN
