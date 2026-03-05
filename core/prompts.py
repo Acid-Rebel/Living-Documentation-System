@@ -29,8 +29,8 @@ Think step by step and ensure your answer is well-structured and visually organi
 
 # Template for RAG
 RAG_TEMPLATE = r"""<START_OF_SYS_PROMPT>
-{system_prompt}
-{output_format_str}
+{{system_prompt}}
+{{output_format_str}}
 <END_OF_SYS_PROMPT>
 {# OrderedDict of DialogTurn #}
 {% if conversation_history %}

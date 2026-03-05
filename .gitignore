@@ -53,4 +53,6 @@ docker-compose.override.yml
 *.bak
 test_system.py
 check_config.py
+# ── Project specific ─────────────────────────────────────────────
+diagram_outputs/
 _temp_repo_*/
