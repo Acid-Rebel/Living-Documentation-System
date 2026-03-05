@@ -498,7 +498,7 @@ def get_github_file_content(repo_url: str, file_path: str, access_token: str = N
             headers["Authorization"] = f"token {access_token}"
         logger.info(f"Fetching file content from GitHub API: {api_url}")
         try:
-            response = requests.get(api_url, headers=headers)
+            response = requests.get(api_url, headers=headers, timeout=10)
             response.raise_for_status()
         except RequestException as e:
             raise ValueError(f"Error fetching file content: {e}")
@@ -569,7 +569,7 @@ def get_gitlab_file_content(repo_url: str, file_path: str, access_token: str = N
             if access_token:
                 project_headers["PRIVATE-TOKEN"] = access_token
             
-            project_response = requests.get(project_info_url, headers=project_headers)
+            project_response = requests.get(project_info_url, headers=project_headers, timeout=10)
             if project_response.status_code == 200:
                 project_data = project_response.json()
                 default_branch = project_data.get('default_branch', 'main')
@@ -588,7 +588,7 @@ def get_gitlab_file_content(repo_url: str, file_path: str, access_token: str = N
             headers["PRIVATE-TOKEN"] = access_token
         logger.info(f"Fetching file content from GitLab API: {api_url}")
         try:
-            response = requests.get(api_url, headers=headers)
+            response = requests.get(api_url, headers=headers, timeout=10)
             response.raise_for_status()
             content = response.text
         except RequestException as e:
@@ -640,7 +640,7 @@ def get_bitbucket_file_content(repo_url: str, file_path: str, access_token: str 
             if access_token:
                 repo_headers["Authorization"] = f"Bearer {access_token}"
             
-            repo_response = requests.get(repo_info_url, headers=repo_headers)
+            repo_response = requests.get(repo_info_url, headers=repo_headers, timeout=10)
             if repo_response.status_code == 200:
                 repo_data = repo_response.json()
                 default_branch = repo_data.get('mainbranch', {}).get('name', 'main')
@@ -662,7 +662,7 @@ def get_bitbucket_file_content(repo_url: str, file_path: str, access_token: str 
             headers["Authorization"] = f"Bearer {access_token}"
         logger.info(f"Fetching file content from Bitbucket API: {api_url}")
         try:
-            response = requests.get(api_url, headers=headers)
+            response = requests.get(api_url, headers=headers, timeout=10)
             if response.status_code == 200:
                 content = response.text
             elif response.status_code == 404:
