@@ -65,3 +65,10 @@ class DiagramGenerator:
         codebase_context = self.extractor.format_for_llm(extracted_files)
         mermaid_code = self._call_llm(DEPENDENCY_DIAGRAM_SYSTEM_PROMPT, codebase_context)
         return mermaid_code
+
+    def generate_call_diagram(self, directory_path: str) -> str:
+        """Generates a Call Diagram (Sequence Diagram) for the given directory."""
+        extracted_files = self.extractor.extract_codebase(directory_path)
+        codebase_context = self.extractor.format_for_llm(extracted_files)
+        mermaid_code = self._call_llm(CALL_DIAGRAM_SYSTEM_PROMPT, codebase_context)
+        return mermaid_code
