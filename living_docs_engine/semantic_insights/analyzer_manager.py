@@ -33,12 +33,12 @@ class AnalyzerManager:
         if language_key not in self._symbol_analyzers or language_key not in self._relation_analyzers:
             raise ValueError(f"Unsupported language for semantic analysis: {language}")
 
-        symbols: List[Symbol] = []
+        symbols: List[object] = []
         relations: List[Relation] = []
 
         for analyzer in self._symbol_analyzers[language_key]:
             artifacts = analyzer.analyze(ast_root, file_path)
-            symbols.extend(self._filter_type(artifacts, Symbol))
+            symbols.extend(self._filter_type(artifacts, (Symbol, Summary)))
 
         for analyzer in self._relation_analyzers[language_key]:
             artifacts = analyzer.analyze(ast_root, file_path)
@@ -49,5 +49,5 @@ class AnalyzerManager:
             "relations": relations,
         }
 
-    def _filter_type(self, artifacts: Iterable[object], expected_type: Type[T]) -> List[T]:
+    def _filter_type(self, artifacts: Iterable[object], expected_type: any) -> List[any]:
         return [artifact for artifact in artifacts if isinstance(artifact, expected_type)]
