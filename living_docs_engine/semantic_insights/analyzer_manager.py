@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List, Type, TypeVar
+from typing import Dict, Iterable, List, TypeVar, Any
 
 from code_parser.ast_schema import ASTNode
 
@@ -9,12 +9,12 @@ from semantic_insights.java.symbol_analyzer import JavaSymbolAnalyzer
 from semantic_insights.models.relation import Relation
 from semantic_insights.models.symbol import Symbol
 from semantic_insights.models.summary import Summary
-
-T = TypeVar("T")
 from semantic_insights.python.call_analyzer import PythonCallAnalyzer
 from semantic_insights.python.import_analyzer import PythonImportAnalyzer
 from semantic_insights.python.symbol_analyzer import PythonSymbolAnalyzer
 from semantic_insights.python.summarizer_analyzer import PythonSummarizerAnalyzer
+
+T = TypeVar("T")
 
 
 class AnalyzerManager:
@@ -49,5 +49,5 @@ class AnalyzerManager:
             "relations": relations,
         }
 
-    def _filter_type(self, artifacts: Iterable[object], expected_type: any) -> List[any]:
+    def _filter_type(self, artifacts: Iterable[object], expected_type: Any) -> List[Any]:
         return [artifact for artifact in artifacts if isinstance(artifact, expected_type)]
