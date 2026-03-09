@@ -17,7 +17,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DriftReportPanel from '@/components/lds_panels/DriftReportPanel';
 import SemanticInsightsPanel from '@/components/lds_panels/SemanticInsightsPanel';
 import DependencyAnalysisPanel from '@/components/lds_panels/DependencyAnalysisPanel';
-import { FaBitbucket, FaBookOpen, FaComments, FaDownload, FaExclamationTriangle, FaFileExport, FaFolder, FaGithub, FaGitlab, FaHome, FaSync, FaTimes, FaCodeBranch, FaSearch, FaNetworkWired } from 'react-icons/fa';
+import DiagramsPanel from '@/components/lds_panels/DiagramsPanel';
+import NLPSummaryPanel from '@/components/lds_panels/NLPSummaryPanel';
+import PullRequestsPanel from '@/components/lds_panels/PullRequestsPanel';
+import { FaBitbucket, FaBookOpen, FaComments, FaDownload, FaExclamationTriangle, FaFileExport, FaFolder, FaGithub, FaGitlab, FaHome, FaSync, FaTimes, FaCodeBranch, FaSearch, FaNetworkWired, FaProjectDiagram, FaFileAlt } from 'react-icons/fa';
 // Define the WikiSection and WikiStructure types directly in this file
 // since the imported types don't have the sections and rootSections properties
 interface WikiSection {
@@ -291,7 +294,7 @@ export default function RepoWikiPage() {
   const [fileTreePaths, setFileTreePaths] = useState<string>('');
 
   // New UI State
-  const [mainTab, setMainTab] = useState<'documentation' | 'drift' | 'semantic' | 'dependency' | 'ask'>('documentation');
+  const [mainTab, setMainTab] = useState<'documentation' | 'drift' | 'semantic' | 'dependency' | 'diagrams' | 'nlp-summary' | 'pull-requests' | 'ask'>('documentation');
   const [leftTab, setLeftTab] = useState<'modules' | 'files'>('modules');
 
   // Helper function to generate proper repository file URLs
@@ -2192,9 +2195,12 @@ IMPORTANT:
               <div className="flex border-b border-[var(--border-color)] bg-[var(--background)]/30 overflow-x-auto custom-scrollbar flex-shrink-0">
                 {[
                   { id: 'documentation', label: 'Documentation', icon: FaBookOpen },
+                  { id: 'diagrams', label: 'AI Diagrams', icon: FaProjectDiagram },
+                  { id: 'nlp-summary', label: 'NLP Summary', icon: FaFileAlt },
                   { id: 'drift', label: 'Drift Report', icon: FaCodeBranch },
                   { id: 'semantic', label: 'Semantic Insights', icon: FaSearch },
-                  { id: 'dependency', label: 'Dependency Analysis', icon: FaNetworkWired },
+                  { id: 'dependency', label: 'Dependencies', icon: FaNetworkWired },
+                  { id: 'pull-requests', label: 'Doc PRs', icon: FaCodeBranch },
                   { id: 'ask', label: 'Ask Repository', icon: FaComments }
                 ].map((tab) => (
                   <button
@@ -2257,6 +2263,14 @@ IMPORTANT:
                   )
                 )}
 
+                {mainTab === 'diagrams' && (
+                  <DiagramsPanel repoInfo={effectiveRepoInfo} />
+                )}
+
+                {mainTab === 'nlp-summary' && (
+                  <NLPSummaryPanel repoInfo={effectiveRepoInfo} />
+                )}
+
                 {mainTab === 'drift' && (
                   <DriftReportPanel repoInfo={effectiveRepoInfo} />
                 )}
@@ -2267,6 +2281,10 @@ IMPORTANT:
 
                 {mainTab === 'dependency' && (
                   <DependencyAnalysisPanel repoInfo={effectiveRepoInfo} />
+                )}
+
+                {mainTab === 'pull-requests' && (
+                  <PullRequestsPanel repoInfo={effectiveRepoInfo} />
                 )}
 
                 {mainTab === 'ask' && (
