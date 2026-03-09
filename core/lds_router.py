@@ -240,6 +240,18 @@ def _generate_semantic_insights(files: List[str]) -> Dict[str, Any]:
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
+# --- API Docs Download Endpoint ---
+@router.get("/api-docs-download")
+async def download_api_docs(owner: str, repo: str, repo_type: str = "github"):
+    """Download OpenAPI/Swagger docs for the repo."""
+    # For demo: return a static OpenAPI spec. Replace with real generator if needed.
+    openapi = {
+        "openapi": "3.0.0",
+        "info": {"title": f"{repo} API", "version": "1.0.0"},
+        "paths": {"/": {"get": {"summary": "Root endpoint", "responses": {"200": {"description": "OK"}}}}}
+    }
+    return JSONResponse(content=openapi)
+
 @router.get("/drift-report")
 async def get_drift_report(owner: str, repo: str, repo_type: str = "github"):
     """Returns documentation drift report analysed from the live repository tree."""
@@ -1051,10 +1063,9 @@ async def _create_github_pr(owner: str, repo: str, title: str, body: str,
 
 async def _generate_updated_readme(owner: str, repo: str, files: List[str],
                                     current_readme: str, commit_info: Dict) -> str:
-    """Generate an updated README based on repo analysis.
+    """Generate a rich README with diagrams, architecture insights, and NLP summary.
 
-    Uses file structure analysis to produce an accurate README.
-    Falls back to appending a changelog entry if generation fails.
+    Pulls together all analysis pipelines to produce a comprehensive README.
     """
     fw = _detect_framework(files)
     modules = _analyze_modules(files)
@@ -1064,56 +1075,140 @@ async def _generate_updated_readme(owner: str, repo: str, files: List[str],
     lang = nlp.get("primary_language", "Unknown")
     total_files = nlp.get("total_files", 0)
     mod_count = nlp.get("module_count", 0)
-
-    # Build module descriptions
-    mod_lines = []
-    for ms in nlp.get("module_summaries", [])[:10]:
-        mod_lines.append(f"- **{ms['name']}/** — {ms['description']} ({ms['file_count']} files)")
-
-    modules_section = "\n".join(mod_lines) if mod_lines else "No modules detected."
-
-    # Build key findings
-    findings = nlp.get("key_findings", [])
-    findings_section = "\n".join(f"- {f}" for f in findings[:5]) if findings else ""
-
-    # Detect project name from repo
+    overview = nlp.get("overview", f"A {lang} project.")
     project_name = repo.replace("-", " ").replace("_", " ").title()
+
+    # ── Generate all three Mermaid diagrams ──
+    arch_diagram = _generate_diagram_mermaid(files, "dependency")
+    module_diagram = _generate_diagram_mermaid(files, "class")
+    flow_diagram = _generate_diagram_mermaid(files, "sequence")
+
+    # ── Module descriptions ──
+    mod_lines = []
+    for ms in nlp.get("module_summaries", [])[:12]:
+        components = ms.get("components", [])
+        comp_str = f" — contains: {', '.join(components[:5])}" if components else ""
+        mod_lines.append(f"| **{ms['name']}/** | {ms['description']} | {ms['file_count']} files |{comp_str}")
+
+    # ── Key findings ──
+    findings = nlp.get("key_findings", [])
+
+    # ── External packages ──
+    ext_pkgs = _detect_external_packages(files)
+    has_deps = ext_pkgs and ext_pkgs[0] != "No manifest files detected"
+
+    # ── File type breakdown from NLP stats ──
+    stats = nlp.get("stats", {})
+    src_count = stats.get("source_files", 0)
+    doc_count = stats.get("documentation_files", 0)
+    config_count = stats.get("config_files", 0)
+    frontend_count = stats.get("frontend_files", 0)
+    test_count = stats.get("test_files", 0)
+
+    # ──────── Build the README ────────
 
     readme = f"""# {project_name}
 
-{nlp.get('overview', f'A {lang} project.')}
+> {overview}
+
+[![Auto-docs](https://img.shields.io/badge/docs-auto--generated-blue)]() [![Framework](https://img.shields.io/badge/framework-{framework}-green)]() [![Language](https://img.shields.io/badge/language-{lang}-orange)]()
 
 ## Tech Stack
 
-- **Language**: {lang}
-- **Framework**: {framework.capitalize() if framework != 'unknown' else 'N/A'}
-- **Total Files**: {total_files}
-- **Modules**: {mod_count}
+| | |
+|---|---|
+| **Language** | {lang} |
+| **Framework** | {framework.capitalize() if framework != 'unknown' else 'Not detected'} |
+| **Total Files** | {total_files} |
+| **Modules** | {mod_count} |
+| **Source Files** | {src_count} |
+| **Frontend Files** | {frontend_count} |
+| **Test Files** | {test_count} |
+| **Config Files** | {config_count} |
+| **Documentation** | {doc_count} |
 
-## Project Structure
-
-{modules_section}
 """
 
-    if findings_section:
-        readme += f"""
-## Key Insights
+    # ── Architecture Diagram ──
+    if arch_diagram:
+        readme += f"""## System Architecture
 
-{findings_section}
+The following diagram shows the high-level architecture and how modules relate to each other:
+
+```mermaid
+{arch_diagram}
+```
+
 """
 
-    # Detect external packages
-    ext_pkgs = _detect_external_packages(files)
-    if ext_pkgs and ext_pkgs[0] != "No manifest files detected":
-        readme += "\n## Dependencies\n\n"
+    # ── Project Structure ──
+    if mod_lines:
+        readme += "## Project Structure\n\n"
+        readme += "| Module | Description | Size | Key Components |\n"
+        readme += "|--------|-------------|------|----------------|\n"
+        readme += "\n".join(mod_lines) + "\n\n"
+    else:
+        readme += "## Project Structure\n\nNo distinct modules detected.\n\n"
+
+    # ── Module Detail Diagram ──
+    if module_diagram:
+        readme += f"""## Module Internals
+
+Shows the internal components and relationships within each module:
+
+```mermaid
+{module_diagram}
+```
+
+"""
+
+    # ── Request / Data Flow ──
+    if flow_diagram:
+        readme += f"""## Request Flow
+
+How a typical request flows through the system:
+
+```mermaid
+{flow_diagram}
+```
+
+"""
+
+    # ── Key Insights ──
+    if findings:
+        readme += "## Key Insights\n\n"
+        for f in findings[:8]:
+            readme += f"- {f}\n"
+        readme += "\n"
+
+    # ── Dependencies ──
+    if has_deps:
+        readme += "## Dependencies\n\n"
         for pkg in ext_pkgs:
-            readme += f"- {pkg}\n"
+            readme += f"- `{pkg}`\n"
+        readme += "\n"
 
-    readme += f"""
----
+    # ── Getting Started ──
+    if framework != "unknown":
+        readme += "## Getting Started\n\n"
+        start_cmds = {
+            "django": "```bash\\npip install -r requirements.txt\\npython manage.py migrate\\npython manage.py runserver\\n```",
+            "flask": "```bash\\npip install -r requirements.txt\\npython app.py\\n```",
+            "fastapi": "```bash\\npip install -r requirements.txt\\nuvicorn main:app --reload\\n```",
+            "nextjs": "```bash\\nnpm install\\nnpm run dev\\n```",
+            "express": "```bash\\nnpm install\\nnpm start\\n```",
+            "react": "```bash\\nnpm install\\nnpm start\\n```",
+            "spring": "```bash\\n./mvnw spring-boot:run\\n```",
+            "rails": "```bash\\nbundle install\\nrails server\\n```",
+        }
+        cmd = start_cmds.get(framework, "```bash\\n# Install dependencies and run the project\\n```")
+        # Unescape the \\n for actual newlines
+        readme += cmd.replace("\\n", "\n") + "\n\n"
 
-*Auto-generated by [Living Documentation System](https://github.com/Shan713/Living-Documentation-System) on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}*
-*Triggered by commit `{commit_info.get('sha', 'N/A')[:7]}` — {commit_info.get('message', 'N/A')}*
+    # ── Footer ──
+    readme += f"""---
+
+<sub>Auto-generated by [Living Documentation System](https://github.com/Shan713/Living-Documentation-System) on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} — triggered by commit [`{commit_info.get('sha', 'N/A')[:7]}`] — {commit_info.get('message', 'N/A')}</sub>
 """
 
     return readme

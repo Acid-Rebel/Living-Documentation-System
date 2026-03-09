@@ -1,5 +1,8 @@
 import os
 import logging
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -22,6 +25,35 @@ app = FastAPI(
     title="Streaming API",
     description="API for streaming chat completions"
 )
+
+# --- Background Polling for Repo Updates ---
+import threading
+import time
+from core.lds_router import _fetch_repo_tree, _get_latest_commit, _auto_update_docs
+
+_last_commit_sha = {}
+
+def poll_repo_for_updates(owner, repo, repo_type="github", interval=300):
+    while True:
+        try:
+            files = asyncio.run(_fetch_repo_tree(owner, repo, repo_type))
+            commit = asyncio.run(_get_latest_commit(owner, repo))
+            sha = commit.get("sha") if commit else None
+            if sha and _last_commit_sha.get(f"{owner}/{repo}") != sha:
+                _last_commit_sha[f"{owner}/{repo}"] = sha
+                asyncio.run(_auto_update_docs(owner, repo, commit))
+        except Exception as e:
+            logger.error(f"Polling error: {e}")
+        time.sleep(60)
+
+def start_polling():
+    owner = os.environ.get("REPO_OWNER")
+    repo = os.environ.get("REPO_NAME")
+    repo_type = os.environ.get("REPO_TYPE", "github")
+    if owner and repo:
+        threading.Thread(target=poll_repo_for_updates, args=(owner, repo, repo_type), daemon=True).start()
+
+start_polling()
 
 # Configure CORS
 app.add_middleware(
