@@ -66,16 +66,6 @@ export default function TokenInput({
                 >
                   <span className="text-sm">GitLab</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlatform('bitbucket')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-all ${selectedPlatform === 'bitbucket'
-                    ? 'bg-[var(--accent-primary)]/10 border-[var(--accent-primary)] text-[var(--accent-primary)] shadow-sm'
-                    : 'border-[var(--border-color)] text-[var(--foreground)] hover:bg-[var(--background)]'
-                    }`}
-                >
-                  <span className="text-sm">Bitbucket</span>
-                </button>
               </div>
             </div>
           )}
@@ -105,4 +95,4 @@ export default function TokenInput({
       )}
     </div>
   );
-} 
+}
