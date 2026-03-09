@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaWikipediaW, FaGithub, FaCoffee, FaTwitter } from 'react-icons/fa';
+import Image from 'next/image';
+import { FaGithub, FaCoffee, FaTwitter } from 'react-icons/fa';
 import ThemeToggle from '@/components/theme-toggle';
 import Mermaid from '../components/Mermaid';
 import ConfigurationModal from '@/components/ConfigurationModal';
@@ -135,7 +136,7 @@ export default function Home() {
   const [excludedFiles, setExcludedFiles] = useState('');
   const [includedDirs, setIncludedDirs] = useState('');
   const [includedFiles, setIncludedFiles] = useState('');
-  const [selectedPlatform, setSelectedPlatform] = useState<'github' | 'gitlab' | 'bitbucket'>('github');
+  const [selectedPlatform, setSelectedPlatform] = useState<'github' | 'gitlab'>('github');
   const [accessToken, setAccessToken] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -211,8 +212,6 @@ export default function Home() {
         type = 'github';
       } else if (domain?.includes('gitlab.com') || domain?.includes('gitlab.')) {
         type = 'gitlab';
-      } else if (domain?.includes('bitbucket.org') || domain?.includes('bitbucket.')) {
-        type = 'bitbucket';
       } else {
         type = 'web'; // fallback for other git hosting services
       }
@@ -256,7 +255,7 @@ export default function Home() {
     const parsedRepo = parseRepositoryInput(repositoryInput);
 
     if (!parsedRepo) {
-      setError('Invalid repository format. Use "owner/repo", GitHub/GitLab/BitBucket URL, or a local folder path like "/path/to/folder" or "C:\\path\\to\\folder".');
+      setError('Invalid repository format. Use "owner/repo", GitHub/GitLab URL, or a local folder path like "/path/to/folder" or "C:\\path\\to\\folder".');
       return;
     }
 
@@ -337,7 +336,7 @@ export default function Home() {
     const parsedRepo = parseRepositoryInput(repositoryInput);
 
     if (!parsedRepo) {
-      setError('Invalid repository format. Use "owner/repo", GitHub/GitLab/BitBucket URL, or a local folder path like "/path/to/folder" or "C:\\path\\to\\folder".');
+      setError('Invalid repository format. Use "owner/repo", GitHub/GitLab URL, or a local folder path like "/path/to/folder" or "C:\\path\\to\\folder".');
       setIsSubmitting(false);
       return;
     }
@@ -397,8 +396,15 @@ export default function Home() {
         <div
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[var(--card-bg)] rounded-lg shadow-custom border border-[var(--border-color)] p-4">
           <div className="flex items-center">
-            <div className="bg-[var(--accent-primary)] p-2 rounded-lg mr-3">
-              <FaWikipediaW className="text-2xl text-white" />
+            <div className="mr-3">
+              <Image
+                src="/logo.png"
+                alt="Living Documentation System logo"
+                width={48}
+                height={48}
+                className="rounded-xl"
+                priority
+              />
             </div>
             <div className="mr-6">
               <h1 className="text-xl md:text-2xl font-bold text-[var(--accent-primary)]">{t('common.appName')}</h1>
@@ -422,7 +428,7 @@ export default function Home() {
                   type="text"
                   value={repositoryInput}
                   onChange={handleRepositoryInputChange}
-                  placeholder={t('form.repoPlaceholder') || "owner/repo, GitHub/GitLab/BitBucket URL, or local folder path"}
+                  placeholder={t('form.repoPlaceholder') || "owner/repo, GitHub/GitLab URL, or local folder path"}
                   className="input-japanese block w-full pl-10 pr-3 py-2.5 border-[var(--border-color)] rounded-lg bg-transparent text-[var(--foreground)] focus:outline-none focus:border-[var(--accent-primary)]"
                 />
                 {error && (
@@ -494,7 +500,7 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row items-center mb-6 gap-4">
                   <div className="relative">
                     <div className="absolute -inset-1 bg-[var(--accent-primary)]/20 rounded-full blur-md"></div>
-                    <FaWikipediaW className="text-5xl text-[var(--accent-primary)] relative z-10" />
+                    <Image src="/logo.png" alt="Living Documentation System logo" width={56} height={56} className="relative z-10 rounded-xl" />
                   </div>
                   <div className="text-center sm:text-left">
                     <h2 className="text-2xl font-bold text-[var(--foreground)] font-serif mb-1">{t('projects.existingProjects')}</h2>
@@ -518,7 +524,7 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row items-center mb-6 gap-4">
                   <div className="relative">
                     <div className="absolute -inset-1 bg-[var(--accent-primary)]/20 rounded-full blur-md"></div>
-                    <FaWikipediaW className="text-5xl text-[var(--accent-primary)] relative z-10" />
+                    <Image src="/logo.png" alt="Living Documentation System logo" width={56} height={56} className="relative z-10 rounded-xl" />
                   </div>
                   <div className="text-center sm:text-left">
                     <h2 className="text-2xl font-bold text-[var(--foreground)] font-serif mb-1">{t('home.welcome')}</h2>
@@ -556,11 +562,7 @@ export default function Home() {
                 className="bg-[var(--background)]/70 p-3 rounded border border-[var(--border-color)] font-mono overflow-x-hidden whitespace-nowrap"
               >Acid-Rebel/Living-Documentation-System
               </div>
-              <div
-                className="bg-[var(--background)]/70 p-3 rounded border border-[var(--border-color)] font-mono overflow-x-hidden whitespace-nowrap"
-              >https://bitbucket.org/atlassian/atlaskit
-              </div>
-            </div>
+          </div>
           </div>
 
           {/* Visualization section - improved for better visibility */}
@@ -608,14 +610,14 @@ export default function Home() {
                 className="text-[var(--muted)] hover:text-[var(--accent-primary)] transition-colors">
                 <FaGithub className="text-xl" />
               </a>
-              <a href="https://buymeacoffee.com/sheing" target="_blank" rel="noopener noreferrer"
+              {/* <a href="https://buymeacoffee.com/sheing" target="_blank" rel="noopener noreferrer"
                 className="text-[var(--muted)] hover:text-[var(--accent-primary)] transition-colors">
                 <FaCoffee className="text-xl" />
-              </a>
-              <a href="https://x.com/sashimikun_void" target="_blank" rel="noopener noreferrer"
+              </a> */}
+              {/* <a href="https://x.com/sashimikun_void" target="_blank" rel="noopener noreferrer"
                 className="text-[var(--muted)] hover:text-[var(--accent-primary)] transition-colors">
                 <FaTwitter className="text-xl" />
-              </a>
+              </a> */}
             </div>
             <ThemeToggle />
           </div>
@@ -624,3 +626,7 @@ export default function Home() {
     </div>
   );
 }
+
+
+
+
