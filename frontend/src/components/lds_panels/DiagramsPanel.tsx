@@ -69,9 +69,9 @@ export default function DiagramsPanel({ repoInfo }: DiagramsPanelProps) {
     if (!data) return null;
 
     const tabs: { id: DiagramTab; label: string; icon: React.ElementType; diagram: string }[] = [
-        { id: 'dependency', label: 'Architecture / Dependency', icon: FaSitemap, diagram: data.dependency_diagram },
-        { id: 'class', label: 'Class Diagram', icon: FaCubes, diagram: data.class_diagram },
-        { id: 'call', label: 'Call / Sequence', icon: FaStream, diagram: data.call_diagram },
+        { id: 'dependency', label: 'Architecture', icon: FaSitemap, diagram: data.dependency_diagram },
+        { id: 'class', label: 'Module Structure', icon: FaCubes, diagram: data.class_diagram },
+        { id: 'call', label: 'Request Flow', icon: FaStream, diagram: data.call_diagram },
     ];
 
     const currentDiagram = tabs.find(t => t.id === activeTab)?.diagram || '';
@@ -84,7 +84,7 @@ export default function DiagramsPanel({ repoInfo }: DiagramsPanelProps) {
             </div>
 
             <p className="text-sm text-[var(--muted)] mb-6">
-                Auto-generated Mermaid diagrams showing the repository&apos;s architecture, class structure, and call flows.
+                Auto-generated diagrams showing the repository&apos;s architecture, module structure, and request flow.
             </p>
 
             {/* Diagram Type Tabs */}
