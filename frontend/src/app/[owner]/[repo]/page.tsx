@@ -2330,7 +2330,7 @@ IMPORTANT:
         setCustomModel={setCustomSelectedModelState}
         isComprehensiveView={isComprehensiveView}
         setIsComprehensiveView={setIsComprehensiveView}
-        showFileFilters={true}
+        showFileFilters={false}
         excludedDirs={modelExcludedDirs}
         setExcludedDirs={setModelExcludedDirs}
         excludedFiles={modelExcludedFiles}
@@ -2341,7 +2341,8 @@ IMPORTANT:
         setIncludedFiles={setModelIncludedFiles}
         onApply={confirmRefresh}
         showWikiType={true}
-        showTokenInput={effectiveRepoInfo.type !== 'local' && !currentToken} // Show token input if not local and no current token
+        showModelSelector={false}
+        showTokenInput={false}
         repositoryType={effectiveRepoInfo.type as 'github' | 'gitlab' | 'bitbucket'}
         authRequired={authRequired}
         authCode={authCode}

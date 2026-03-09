@@ -34,6 +34,7 @@ interface ModelSelectionModalProps {
   setIncludedFiles?: (value: string) => void;
   showFileFilters?: boolean;
   showWikiType: boolean;
+  showModelSelector?: boolean;
   
   // Token input for refresh
   showTokenInput?: boolean;
@@ -73,6 +74,7 @@ export default function ModelSelectionModal({
   setAuthCode,
   isAuthLoading,
   showWikiType = true,
+  showModelSelector = true,
   showTokenInput = false,
   repositoryType = 'github',
 }: ModelSelectionModalProps) {
@@ -97,10 +99,21 @@ export default function ModelSelectionModal({
   // Reset local state when modal is opened
   useEffect(() => {
     if (isOpen) {
-      setLocalProvider(provider);
-      setLocalModel(model);
-      setLocalIsCustomModel(isCustomModel);
-      setLocalCustomModel(customModel);
+      // When model selector is hidden, default to Google provider
+      if (!showModelSelector) {
+        setLocalProvider(provider || 'google');
+        setLocalModel(model || 'gemini-2.5-flash');
+        setLocalIsCustomModel(false);
+        setLocalCustomModel('');
+        // Also set parent state to Google defaults if not already set
+        if (!provider) setProvider('google');
+        if (!model) setModel('gemini-2.5-flash');
+      } else {
+        setLocalProvider(provider);
+        setLocalModel(model);
+        setLocalIsCustomModel(isCustomModel);
+        setLocalCustomModel(customModel);
+      }
       setLocalIsComprehensiveView(isComprehensiveView);
       setLocalExcludedDirs(excludedDirs);
       setLocalExcludedFiles(excludedFiles);
@@ -110,7 +123,7 @@ export default function ModelSelectionModal({
       setLocalAccessToken('');
       setShowTokenSection(showTokenInput);
     }
-  }, [isOpen, provider, model, isCustomModel, customModel, isComprehensiveView, excludedDirs, excludedFiles, includedDirs, includedFiles, repositoryType, showTokenInput]);
+  }, [isOpen, provider, model, isCustomModel, customModel, isComprehensiveView, excludedDirs, excludedFiles, includedDirs, includedFiles, repositoryType, showTokenInput, showModelSelector, setProvider, setModel]);
 
   // Handler for applying changes
   const handleApply = () => {
@@ -142,7 +155,7 @@ export default function ModelSelectionModal({
           {/* Modal header with close button */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-color)]">
             <h3 className="text-lg font-medium text-[var(--accent-primary)]">
-              <span className="text-[var(--accent-primary)]">{t.form?.modelSelection || 'Model Selection'}</span>
+              <span className="text-[var(--accent-primary)]">{showModelSelector ? (t.form?.modelSelection || 'Model Selection') : (t.form?.configureWiki || 'Configure Docs')}</span>
             </h3>
             <button
               type="button"
@@ -169,6 +182,7 @@ export default function ModelSelectionModal({
             <div className="my-4 border-t border-[var(--border-color)]/30"></div>
 
             {/* Model Selector */}
+            {showModelSelector && (
             <UserSelector
               provider={localProvider}
               setProvider={setLocalProvider}
@@ -188,6 +202,7 @@ export default function ModelSelectionModal({
               includedFiles={localIncludedFiles}
               setIncludedFiles={showFileFilters ? (value: string) => setLocalIncludedFiles(value) : undefined}
             />
+            )}
 
             {/* Token Input Section for refresh */}
             {showTokenInput && (
@@ -249,7 +264,7 @@ export default function ModelSelectionModal({
               onClick={handleApply}
               className="px-4 py-2 text-sm font-medium rounded-md border border-transparent bg-[var(--accent-primary)]/90 text-white hover:bg-[var(--accent-primary)] transition-colors"
             >
-              {t.common?.submit || 'Submit'}
+              {showModelSelector ? (t.common?.submit || 'Submit') : (t.common?.generateWiki || 'Generate Docs')}
             </button>
           </div>
         </div>

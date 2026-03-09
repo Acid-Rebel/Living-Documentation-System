@@ -3,7 +3,8 @@ from pydantic import BaseModel
 import logging
 import os
 import sys
-from typing import Dict, Any, List, Optional
+import time
+from typing import Dict, Any, List, Optional, Tuple
 import aiohttp
 
 # Ensure living_docs_engine is in the path
@@ -17,13 +18,24 @@ router = APIRouter(prefix="/api/lds", tags=["Living Docs Engine"])
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+# Simple in-memory cache for repo tree to avoid repeated GitHub API calls
+_repo_tree_cache: Dict[str, Tuple[float, List[str]]] = {}
+_CACHE_TTL = 120  # seconds
+
+
 async def _fetch_repo_tree(owner: str, repo: str, repo_type: str) -> List[str]:
-    """Fetch repository file paths from the hosting API."""
+    """Fetch repository file paths from the hosting API (with short-lived cache)."""
+    cache_key = f"{repo_type}:{owner}/{repo}"
+    cached = _repo_tree_cache.get(cache_key)
+    if cached and (time.time() - cached[0]) < _CACHE_TTL:
+        return cached[1]
+
     headers: Dict[str, str] = {"Accept": "application/json"}
     token = os.environ.get("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"token {token}"
 
+    result: List[str] = []
     if repo_type == "github":
         async with aiohttp.ClientSession() as session:
             for branch in ("main", "master"):
@@ -31,8 +43,11 @@ async def _fetch_repo_tree(owner: str, repo: str, repo_type: str) -> List[str]:
                 async with session.get(api_url, headers=headers) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        return [item["path"] for item in data.get("tree", []) if item.get("type") == "blob"]
-    return []
+                        result = [item["path"] for item in data.get("tree", []) if item.get("type") == "blob"]
+                        break
+
+    _repo_tree_cache[cache_key] = (time.time(), result)
+    return result
 
 
 def _classify_file(path: str) -> Optional[str]:
@@ -278,6 +293,12 @@ async def get_dependency_analysis(owner: str, repo: str, repo_type: str = "githu
 
 # ── AI-Enhanced Diagrams ─────────────────────────────────────────────────────
 
+def _sanitize_mermaid_id(name: str) -> str:
+    """Sanitize a module name into a valid Mermaid node identifier (alphanumeric + underscore)."""
+    import re as _re
+    return _re.sub(r'[^a-zA-Z0-9_]', '_', name)
+
+
 def _generate_diagram_mermaid(files: List[str], diagram_type: str) -> str:
     """Generate a Mermaid diagram from the repository file structure (no LLM needed)."""
     code_files = [f for f in files if _classify_file(f) == "code"]
@@ -293,8 +314,8 @@ def _generate_diagram_mermaid(files: List[str], diagram_type: str) -> str:
     if diagram_type == "class":
         lines = ["classDiagram"]
         for mod, mod_files in sorted(dir_files.items(), key=lambda x: -len(x[1])):
-            # represent each module as a class with file counts
-            lines.append(f"    class {mod} {{")
+            safe = _sanitize_mermaid_id(mod)
+            lines.append(f"    class {safe} {{")
             exts: Dict[str, int] = {}
             for mf in mod_files:
                 ext = os.path.splitext(mf)[1].lstrip(".")
@@ -308,7 +329,7 @@ def _generate_diagram_mermaid(files: List[str], diagram_type: str) -> str:
             for mb in mod_names[i + 1:]:
                 a_refs_b = any(mb.lower() in f.lower() for f in dir_files.get(ma, []))
                 if a_refs_b:
-                    lines.append(f"    {ma} --> {mb}")
+                    lines.append(f"    {_sanitize_mermaid_id(ma)} --> {_sanitize_mermaid_id(mb)}")
         return "\n".join(lines)
 
     elif diagram_type == "dependency":
@@ -316,33 +337,40 @@ def _generate_diagram_mermaid(files: List[str], diagram_type: str) -> str:
         mod_names = list(dir_files.keys())
         for mod in mod_names:
             file_count = len(dir_files[mod])
-            lines.append(f"    {mod}[{mod} ({file_count} files)]")
+            safe = _sanitize_mermaid_id(mod)
+            lines.append(f'    {safe}["{mod} - {file_count} files"]')
         for i, ma in enumerate(mod_names):
             for mb in mod_names[i + 1:]:
+                sa, sb = _sanitize_mermaid_id(ma), _sanitize_mermaid_id(mb)
                 a_refs_b = any(mb.lower() in f.lower() for f in dir_files.get(ma, []))
                 b_refs_a = any(ma.lower() in f.lower() for f in dir_files.get(mb, []))
                 if a_refs_b:
-                    lines.append(f"    {ma} --> {mb}")
+                    lines.append(f"    {sa} --> {sb}")
                 if b_refs_a:
-                    lines.append(f"    {mb} --> {ma}")
+                    lines.append(f"    {sb} --> {sa}")
         if not any("-->" in line for line in lines):
-            # add fallback edges
+            safe_first = _sanitize_mermaid_id(mod_names[0])
             for m in mod_names[1:]:
-                lines.append(f"    {mod_names[0]} --> {m}")
+                lines.append(f"    {safe_first} --> {_sanitize_mermaid_id(m)}")
         return "\n".join(lines)
 
     else:  # call / sequence
         lines = ["sequenceDiagram"]
         mod_names = list(dir_files.keys())[:8]
         if len(mod_names) >= 2:
-            lines.append(f"    participant User")
+            lines.append("    participant User")
             for mod in mod_names:
-                lines.append(f"    participant {mod}")
-            lines.append(f"    User->>{mod_names[0]}: Request")
+                safe = _sanitize_mermaid_id(mod)
+                lines.append(f"    participant {safe} as {mod}")
+            s0 = _sanitize_mermaid_id(mod_names[0])
+            sn = _sanitize_mermaid_id(mod_names[-1])
+            lines.append(f"    User->>{s0}: Request")
             for i in range(len(mod_names) - 1):
-                lines.append(f"    {mod_names[i]}->>{mod_names[i+1]}: Process")
-            lines.append(f"    {mod_names[-1]}-->>{mod_names[0]}: Response")
-            lines.append(f"    {mod_names[0]}->>User: Result")
+                si = _sanitize_mermaid_id(mod_names[i])
+                si1 = _sanitize_mermaid_id(mod_names[i + 1])
+                lines.append(f"    {si}->>{si1}: Process")
+            lines.append(f"    {sn}-->>{s0}: Response")
+            lines.append(f"    {s0}->>User: Result")
         return "\n".join(lines)
 
 

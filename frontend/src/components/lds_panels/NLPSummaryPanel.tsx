@@ -87,7 +87,7 @@ export default function NLPSummaryPanel({ repoInfo }: NLPSummaryPanelProps) {
     };
 
     return (
-        <div className="flex flex-col h-full w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-4">
                 <FaFileAlt className="text-2xl text-[var(--accent-primary)]" />
                 <h2 className="text-2xl font-bold font-serif">NLP Code Summary</h2>
@@ -132,7 +132,7 @@ export default function NLPSummaryPanel({ repoInfo }: NLPSummaryPanelProps) {
             )}
 
             {/* Module Summaries */}
-            <div className="flex-1 overflow-auto">
+            <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2 text-[var(--foreground)]">
                     <FaCubes className="text-[var(--accent-primary)]" /> Module Breakdown
                 </h3>
