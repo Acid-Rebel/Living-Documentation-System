@@ -1,0 +1,168 @@
+﻿python : C:\Users\KAVINESH\anaconda3\Lib\sit
+e-packages\requests\__init__.py:113: 
+RequestsDependencyWarning: urllib3 (2.5.0) 
+or chardet (7.0.1)/charset_normalizer 
+(3.4.4) doesn't match a supported version!
+At line:1 char:42
++ ... stem\core ; python -m pytest 
+tests/unit/test_all_embedders.py -v > py ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+    (C:\Users\KAVINE...ported version!:Str  
+  ing) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommand 
+   Error
+ 
+  warnings.warn(
+============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\KAVINESH\anaconda3\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\Living-Documentation-System\core
+configfile: pytest.ini
+plugins: anyio-4.11.0, hypothesis-6.151.5, langsmith-0.3.39, logfire-4.25.0, asyncio-1.2.0, cov-7.0.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 14 items
+
+tests/unit/test_all_embedders.py::TestEmbedderConfiguration::test_config_loading PASSED [  7%]
+tests/unit/test_all_embedders.py::TestEmbedderConfiguration::test_embedder_type_detection PASSED [ 14%]
+tests/unit/test_all_embedders.py::TestEmbedderConfiguration::test_get_embedder_config PASSED [ 21%]
+tests/unit/test_all_embedders.py::TestEmbedderFactory::test_get_embedder_with_explicit_type PASSED [ 28%]
+tests/unit/test_all_embedders.py::TestEmbedderFactory::test_get_embedder_with_legacy_params PASSED [ 35%]
+tests/unit/test_all_embedders.py::TestEmbedderFactory::test_get_embedder_auto_detection PASSED [ 42%]
+tests/unit/test_all_embedders.py::TestEmbedderClients::test_google_embedder_client FAILED [ 50%]
+tests/unit/test_all_embedders.py::TestDataPipelineFunctions::test_count_tokens PASSED [ 57%]
+tests/unit/test_all_embedders.py::TestDataPipelineFunctions::test_prepare_data_pipeline PASSED [ 64%]
+tests/unit/test_all_embedders.py::TestRAGIntegration::test_rag_initialization PASSED [ 71%]
+tests/unit/test_all_embedders.py::TestRAGIntegration::test_rag_embedder_type_detection PASSED [ 78%]
+tests/unit/test_all_embedders.py::TestEnvironmentVariableHandling::test_embedder_type_env_var PASSED [ 85%]
+tests/unit/test_all_embedders.py::TestIssuesIdentified::test_binary_assumptions_in_rag PASSED [ 92%]
+tests/unit/test_all_embedders.py::TestIssuesIdentified::test_binary_assumptions_in_data_pipeline PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ TestEmbedderClients.test_google_embedder_client _______________
+
+self = <core.tests.unit.test_all_embedders.TestEmbedderClients object at 0x000001DC06881130>
+
+    def test_google_embedder_client(self):
+        """Test Google embedder client directly."""
+        if not os.getenv('GOOGLE_API_KEY'):
+            logger.warning("Skipping Google embedder test - GOOGLE_API_KEY not available")
+            return
+    
+        from core.google_embedder_client import GoogleEmbedderClient
+        from adalflow.core.types import ModelType
+    
+        client = GoogleEmbedderClient()
+    
+        # Test single embedding
+        api_kwargs = client.convert_inputs_to_api_kwargs(
+            input="Hello world",
+            model_kwargs={"model": "text-embedding-004", "task_type": "SEMANTIC_SIMILARITY"},
+            model_type=ModelType.EMBEDDER
+        )
+    
+>       response = client.call(api_kwargs, ModelType.EMBEDDER)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_all_embedders.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\backoff\_sync.py:105: in retry
+    ret = target(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^
+google_embedder_client.py:239: in call
+    response = genai.embed_content(**api_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\generativeai\embedding.py:213: in embed_content
+    embedding_response = client.embed_content(
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\ai\generativelanguage_v1beta\services\generative_service\client.py:1263: in embed_content
+    response = rpc(
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\gapic_v1\method.py:131: in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\retry\retry_unary.py:294: in retry_wrapped_func
+    return retry_target(
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\retry\retry_unary.py:156: in retry_target
+    next_sleep = _retry_error_helper(
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\retry\retry_base.py:214: in _retry_error_helper
+    raise final_exc from source_exc
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\retry\retry_unary.py:147: in retry_target
+    result = target()
+             ^^^^^^^^
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\timeout.py:130: in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+args = (model: "models/text-embedding-004"
+content {
+  parts {
+    text: "Hello world"
+  }
+}
+task_type: SEMANTIC_SIMILARITY
+,)
+kwargs = {'metadata': [('x-goog-request-params', 'model=models/text-embedding-004'), ('x-goog-api-client', 'genai-py/0.8.5 gl-python/3.12.7 grpc/1.76.0 gax/2.26.0')], 'timeout': 60.0}
+
+    @functools.wraps(callable_)
+    def error_remapped_callable(*args, **kwargs):
+        try:
+            return callable_(*args, **kwargs)
+        except grpc.RpcError as exc:
+>           raise exceptions.from_grpc_error(exc) from exc
+E           google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+
+C:\Users\KAVINESH\anaconda3\Lib\site-packages\google\api_core\grpc_helpers.py:77: NotFound
+---------------------------- Captured stderr call -----------------------------
+2026-03-11 00:07:15,174 - INFO - core.google_embedder_client - google_embedder_client.py:233 - Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+2026-03-11 00:07:15,417 - ERROR - core.google_embedder_client - google_embedder_client.py:252 - Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+2026-03-11 00:07:15,417 - INFO - backoff - _common.py:105 - Backing off call(...) for 0.2s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+2026-03-11 00:07:15,596 - INFO - core.google_embedder_client - google_embedder_client.py:233 - Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+2026-03-11 00:07:15,698 - ERROR - core.google_embedder_client - google_embedder_client.py:252 - Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+2026-03-11 00:07:15,699 - INFO - backoff - _common.py:105 - Backing off call(...) for 0.6s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+2026-03-11 00:07:16,267 - INFO - core.google_embedder_client - google_embedder_client.py:233 - Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+2026-03-11 00:07:16,377 - ERROR - core.google_embedder_client - google_embedder_client.py:252 - Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+2026-03-11 00:07:16,377 - INFO - backoff - _common.py:105 - Backing off call(...) for 0.7s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+2026-03-11 00:07:17,039 - INFO - core.google_embedder_client - google_embedder_client.py:233 - Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+2026-03-11 00:07:17,151 - ERROR - core.google_embedder_client - google_embedder_client.py:252 - Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+2026-03-11 00:07:17,151 - INFO - backoff - _common.py:105 - Backing off call(...) for 3.1s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+2026-03-11 00:07:20,288 - INFO - core.google_embedder_client - google_embedder_client.py:233 - Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+2026-03-11 00:07:20,388 - ERROR - core.google_embedder_client - google_embedder_client.py:252 - Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+2026-03-11 00:07:20,389 - ERROR - backoff - _common.py:120 - Giving up call(...) after 5 tries (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+------------------------------ Captured log call ------------------------------
+INFO     core.google_embedder_client:google_embedder_client.py:233 Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+ERROR    core.google_embedder_client:google_embedder_client.py:252 Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+INFO     backoff:_common.py:105 Backing off call(...) for 0.2s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+INFO     core.google_embedder_client:google_embedder_client.py:233 Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+ERROR    core.google_embedder_client:google_embedder_client.py:252 Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+INFO     backoff:_common.py:105 Backing off call(...) for 0.6s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+INFO     core.google_embedder_client:google_embedder_client.py:233 Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+ERROR    core.google_embedder_client:google_embedder_client.py:252 Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+INFO     backoff:_common.py:105 Backing off call(...) for 0.7s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+INFO     core.google_embedder_client:google_embedder_client.py:233 Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+ERROR    core.google_embedder_client:google_embedder_client.py:252 Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+INFO     backoff:_common.py:105 Backing off call(...) for 3.1s (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+INFO     core.google_embedder_client:google_embedder_client.py:233 Google AI Embeddings call kwargs (sanitized): {'model': 'text-embedding-004', 'task_type': 'SEMANTIC_SIMILARITY', 'content_chars': 11}
+ERROR    core.google_embedder_client:google_embedder_client.py:252 Error calling Google AI Embeddings API: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.
+ERROR    backoff:_common.py:120 Giving up call(...) after 5 tries (google.api_core.exceptions.NotFound: 404 models/text-embedding-004 is not found for API version v1beta, or is not supported for embedContent. Call ListModels to see the list of available models and their supported methods.)
+============================== warnings summary ===============================
+tests\unit\test_all_embedders.py:26
+  D:\Living-Documentation-System\core\tests\unit\test_all_embedders.py:26: PytestCollectionWarning: cannot collect test class 'TestRunner' because it has a __init__ constructor (from: tests/unit/test_all_embedders.py)
+    class TestRunner:
+
+tests/unit/test_all_embedders.py::TestEmbedderFactory::test_get_embedder_with_explicit_type
+tests/unit/test_all_embedders.py::TestEmbedderFactory::test_get_embedder_with_legacy_params
+tests/unit/test_all_embedders.py::TestDataPipelineFunctions::test_prepare_data_pipeline
+tests/unit/test_all_embedders.py::TestIssuesIdentified::test_binary_assumptions_in_data_pipeline
+  C:\Users\KAVINESH\anaconda3\Lib\site-packages\adalflow\components\model_client\ollama_client.py:303: UserWarning: Better to provide host or set OLLAMA_HOST env variable. We will use the default host http://localhost:11434 for now.
+    warnings.warn(
+
+tests/unit/test_all_embedders.py::TestRAGIntegration::test_rag_initialization
+  C:\Users\KAVINESH\anaconda3\Lib\site-packages\faiss\loader.py:49: DeprecationWarning: numpy.core._multiarray_umath is deprecated and has been renamed to numpy._core._multiarray_umath. The numpy._core namespace contains private NumPy internals and its use is discouraged, as NumPy internals can change without warning in any release. In practice, most real-world usage of numpy.core is to access functionality in the public NumPy API. If that is the case, use the public NumPy API. If not, you are using NumPy internals. If you would still like to access an internal attribute, use numpy._core._multiarray_umath.__cpu_features__.
+    from numpy.core._multiarray_umath import __cpu_features__
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/test_all_embedders.py::TestEmbedderClients::test_google_embedder_client
+================== 1 failed, 13 passed, 6 warnings in 16.51s ==================
