@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     # Run the FastAPI app with uvicorn
     uvicorn.run(
-        "api.api:app",
+        "core.api:app",
         host="0.0.0.0",
         port=port,
         reload=is_development,
