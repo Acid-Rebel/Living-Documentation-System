@@ -1,0 +1,33 @@
+services:
+  # Backend Service
+  - type: web
+    name: lds-backend
+    env: python
+    buildCommand: pip install poetry && poetry install -C core
+    startCommand: python -m uvicorn core.api:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: lds-data
+      mountPath: /root/.adalflow
+      sizeGB: 5
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+
+  # Frontend Service
+  - type: web
+    name: lds-frontend
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: SERVER_BASE_URL
+        fromService:
+          type: web
+          name: lds-backend
+          property: host
+      - key: NODE_ENV
+        value: production
