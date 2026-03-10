@@ -69,86 +69,146 @@ def count_tokens(text: str, embedder_type: str = None, is_ollama_embedder: bool 
         # Rough approximation: 4 characters per token
         return len(text) // 4
 
+
+def _download_repo_via_zip(repo_url: str, local_path: str, repo_type: str = None, access_token: str = None) -> str:
+    """
+    Downloads a repository as a ZIP archive via the hosting API and extracts it.
+    Used as fallback when git is not available on the system.
+    """
+    import zipfile
+    import io
+
+    parsed = urlparse(repo_url)
+    path_parts = parsed.path.strip('/').split('/')
+
+    headers = {}
+    zip_url = None
+
+    if repo_type == "github" or (parsed.netloc == "github.com"):
+        # GitHub: https://api.github.com/repos/{owner}/{repo}/zipball
+        owner = path_parts[-2]
+        repo = path_parts[-1].replace(".git", "")
+        zip_url = f"https://api.github.com/repos/{owner}/{repo}/zipball"
+        if access_token:
+            headers["Authorization"] = f"token {access_token}"
+        headers["Accept"] = "application/vnd.github+json"
+    elif repo_type == "gitlab" or "gitlab" in parsed.netloc:
+        owner = path_parts[-2]
+        repo = path_parts[-1].replace(".git", "")
+        project_path = quote(f"{owner}/{repo}", safe='')
+        zip_url = f"{parsed.scheme}://{parsed.netloc}/api/v4/projects/{project_path}/repository/archive.zip"
+        if access_token:
+            headers["PRIVATE-TOKEN"] = access_token
+    elif repo_type == "bitbucket" or "bitbucket" in parsed.netloc:
+        owner = path_parts[-2]
+        repo = path_parts[-1].replace(".git", "")
+        zip_url = f"https://bitbucket.org/{owner}/{repo}/get/HEAD.zip"
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+    else:
+        raise ValueError(f"Cannot determine ZIP download URL for repo_type={repo_type!r}, url={repo_url!r}")
+
+    logger.info(f"Downloading repo as ZIP from {zip_url}")
+    response = requests.get(zip_url, headers=headers, timeout=120, stream=True)
+    if not response.ok:
+        raise ValueError(f"Failed to download ZIP archive: HTTP {response.status_code} from {zip_url}")
+
+    logger.info("Extracting ZIP archive...")
+    os.makedirs(local_path, exist_ok=True)
+
+    with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+        # ZIP from GitHub has a top-level folder like "owner-repo-{sha}/..."
+        # We extract everything and then move the inner folder contents up
+        members = zf.namelist()
+        # Find common prefix (top-level dir inside the zip)
+        top_dir = members[0].split('/')[0] if members else None
+        for member in members:
+            # Strip the top-level directory from the path
+            member_path = member
+            if top_dir and member_path.startswith(top_dir + '/'):
+                member_path = member_path[len(top_dir) + 1:]
+            if not member_path:
+                continue
+            target = os.path.join(local_path, member_path)
+            if member.endswith('/'):
+                os.makedirs(target, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with zf.open(member) as source, open(target, 'wb') as dest:
+                    dest.write(source.read())
+
+    logger.info(f"Repository extracted to {local_path}")
+    return f"Repository downloaded and extracted to {local_path}"
+
+
 def download_repo(repo_url: str, local_path: str, repo_type: str = None, access_token: str = None) -> str:
     """
     Downloads a Git repository (GitHub, GitLab, or Bitbucket) to a specified local path.
-
-    Args:
-        repo_type(str): Type of repository
-        repo_url (str): The URL of the Git repository to clone.
-        local_path (str): The local directory where the repository will be cloned.
-        access_token (str, optional): Access token for private repositories.
-
-    Returns:
-        str: The output message from the `git` command.
+    Tries git clone first; falls back to ZIP download via API if git is not available.
     """
+    # Check if repository already exists
+    if os.path.exists(local_path) and os.listdir(local_path):
+        logger.warning(f"Repository already exists at {local_path}. Using existing repository.")
+        return f"Using existing repository at {local_path}"
+
+    logger.info(f"Preparing to clone repository to {local_path}")
+
+    # Try git clone first
+    git_available = False
     try:
-        # Check if Git is installed
-        logger.info(f"Preparing to clone repository to {local_path}")
         subprocess.run(
             ["git", "--version"],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        git_available = True
+    except Exception:
+        logger.warning("git is not available on this system. Falling back to ZIP download.")
 
-        # Check if repository already exists
-        if os.path.exists(local_path) and os.listdir(local_path):
-            # Directory exists and is not empty
-            logger.warning(f"Repository already exists at {local_path}. Using existing repository.")
-            return f"Using existing repository at {local_path}"
+    if git_available:
+        try:
+            os.makedirs(local_path, exist_ok=True)
+            clone_url = repo_url
+            if access_token:
+                parsed = urlparse(repo_url)
+                encoded_token = quote(access_token, safe='')
+                if repo_type == "github":
+                    clone_url = urlunparse((parsed.scheme, f"{encoded_token}@{parsed.netloc}", parsed.path, '', '', ''))
+                elif repo_type == "gitlab":
+                    clone_url = urlunparse((parsed.scheme, f"oauth2:{encoded_token}@{parsed.netloc}", parsed.path, '', '', ''))
+                elif repo_type == "bitbucket":
+                    clone_url = urlunparse((parsed.scheme, f"x-token-auth:{encoded_token}@{parsed.netloc}", parsed.path, '', '', ''))
+                logger.info("Using access token for authentication")
 
-        # Ensure the local path exists
-        os.makedirs(local_path, exist_ok=True)
+            logger.info(f"Cloning repository from {repo_url} to {local_path}")
+            result = subprocess.run(
+                ["git", "clone", "--depth=1", "--single-branch", clone_url, local_path],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            logger.info("Repository cloned successfully")
+            return result.stdout.decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.decode('utf-8')
+            if access_token:
+                error_msg = error_msg.replace(access_token, "***TOKEN***")
+                error_msg = error_msg.replace(quote(access_token, safe=''), "***TOKEN***")
+            raise ValueError(f"Error during cloning: {error_msg}")
+        except Exception as e:
+            raise ValueError(f"An unexpected error occurred during git clone: {str(e)}")
 
-        # Prepare the clone URL with access token if provided
-        clone_url = repo_url
-        if access_token:
-            parsed = urlparse(repo_url)
-            # URL-encode the token to handle special characters
-            encoded_token = quote(access_token, safe='')
-            # Determine the repository type and format the URL accordingly
-            if repo_type == "github":
-                # Format: https://{token}@{domain}/owner/repo.git
-                # Works for both github.com and enterprise GitHub domains
-                clone_url = urlunparse((parsed.scheme, f"{encoded_token}@{parsed.netloc}", parsed.path, '', '', ''))
-            elif repo_type == "gitlab":
-                # Format: https://oauth2:{token}@gitlab.com/owner/repo.git
-                clone_url = urlunparse((parsed.scheme, f"oauth2:{encoded_token}@{parsed.netloc}", parsed.path, '', '', ''))
-            elif repo_type == "bitbucket":
-                # Format: https://x-token-auth:{token}@bitbucket.org/owner/repo.git
-                clone_url = urlunparse((parsed.scheme, f"x-token-auth:{encoded_token}@{parsed.netloc}", parsed.path, '', '', ''))
-
-            logger.info("Using access token for authentication")
-
-        # Clone the repository
-        logger.info(f"Cloning repository from {repo_url} to {local_path}")
-        # We use repo_url in the log to avoid exposing the token in logs
-        result = subprocess.run(
-            ["git", "clone", "--depth=1", "--single-branch", clone_url, local_path],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        logger.info("Repository cloned successfully")
-        return result.stdout.decode("utf-8")
-
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.decode('utf-8')
-        # Sanitize error message to remove any tokens (both raw and URL-encoded)
-        if access_token:
-            # Remove raw token
-            error_msg = error_msg.replace(access_token, "***TOKEN***")
-            # Also remove URL-encoded token to prevent leaking encoded version
-            encoded_token = quote(access_token, safe='')
-            error_msg = error_msg.replace(encoded_token, "***TOKEN***")
-        raise ValueError(f"Error during cloning: {error_msg}")
+    # Fallback: download via ZIP archive
+    try:
+        return _download_repo_via_zip(repo_url, local_path, repo_type, access_token)
     except Exception as e:
         raise ValueError(f"An unexpected error occurred: {str(e)}")
 
+
 # Alias for backward compatibility
 download_github_repo = download_repo
+
 
 def read_all_documents(path: str, embedder_type: str = None, is_ollama_embedder: bool = None, 
                       excluded_dirs: List[str] = None, excluded_files: List[str] = None,
