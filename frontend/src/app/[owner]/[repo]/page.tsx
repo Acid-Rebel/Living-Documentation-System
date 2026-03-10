@@ -914,17 +914,28 @@ IMPORTANT:
       } catch (wsError) {
         console.error('WebSocket error, falling back to HTTP:', wsError);
 
-        // Fall back to HTTP if WebSocket fails
-        const response = await fetch(`/api/chat/stream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
-        });
+        // Fall back to HTTP if WebSocket fails — with retry for 503 (Heroku cold-start timeout)
+        const MAX_RETRIES = 4;
+        const RETRY_DELAY_MS = 5000;
+        let response: Response | null = null;
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          if (attempt > 1) {
+            setLoadingMessage(`Preparing repository embeddings, retrying... (attempt ${attempt}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+          }
+          response = await fetch(`/api/chat/stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          });
+          // 503 = Heroku H12 timeout (first-time repo indexing takes >30s).
+          // The backend caches after first run, so retry will succeed.
+          if (response.status !== 503 && response.status !== 502) break;
+          console.warn(`Got ${response.status} on attempt ${attempt}, will retry...`);
+        }
 
-        if (!response.ok) {
-          throw new Error(`Error determining wiki structure: ${response.status}`);
+        if (!response || !response.ok) {
+          throw new Error(`Error determining wiki structure: ${response?.status ?? 'unknown'}`);
         }
 
         // Process the response
