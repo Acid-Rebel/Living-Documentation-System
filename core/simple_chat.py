@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from typing import List, Optional
@@ -9,7 +10,7 @@ from adalflow.core.types import ModelType
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from core.config import get_model_config, configs, OPENROUTER_API_KEY, OPENAI_API_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from core.data_pipeline import count_tokens, get_file_content
@@ -73,68 +74,102 @@ class ChatCompletionRequest(BaseModel):
     included_dirs: Optional[str] = Field(None, description="Comma-separated list of directories to include exclusively")
     included_files: Optional[str] = Field(None, description="Comma-separated list of file patterns to include exclusively")
 
+    @validator('provider', pre=True, always=True)
+    def default_provider(cls, v):
+        """Treat empty or missing provider as 'google'."""
+        if not v or not v.strip():
+            return 'google'
+        return v
+
+
 @app.post("/chat/completions/stream")
 async def chat_completions_stream(request: ChatCompletionRequest):
     """Stream a chat completion response directly using Google Generative AI"""
-    try:
-        # Check if request contains very large input
-        input_too_large = False
-        if request.messages and len(request.messages) > 0:
-            last_message = request.messages[-1]
-            if hasattr(last_message, 'content') and last_message.content:
-                tokens = count_tokens(last_message.content, request.provider == "ollama")
-                logger.info(f"Request size: {tokens} tokens")
-                if tokens > 8000:
-                    logger.warning(f"Request exceeds recommended token limit ({tokens} > 7500)")
-                    input_too_large = True
 
-        # Create a new RAG instance for this request
-        try:
-            request_rag = RAG(provider=request.provider, model=request.model)
-
-            # Extract custom file filter parameters if provided
-            excluded_dirs = None
-            excluded_files = None
-            included_dirs = None
-            included_files = None
-
-            if request.excluded_dirs:
-                excluded_dirs = [unquote(dir_path) for dir_path in request.excluded_dirs.split('\n') if dir_path.strip()]
-                logger.info(f"Using custom excluded directories: {excluded_dirs}")
-            if request.excluded_files:
-                excluded_files = [unquote(file_pattern) for file_pattern in request.excluded_files.split('\n') if file_pattern.strip()]
-                logger.info(f"Using custom excluded files: {excluded_files}")
-            if request.included_dirs:
-                included_dirs = [unquote(dir_path) for dir_path in request.included_dirs.split('\n') if dir_path.strip()]
-                logger.info(f"Using custom included directories: {included_dirs}")
-            if request.included_files:
-                included_files = [unquote(file_pattern) for file_pattern in request.included_files.split('\n') if file_pattern.strip()]
-                logger.info(f"Using custom included files: {included_files}")
-
-            request_rag.prepare_retriever(request.repo_url, request.type, request.token, excluded_dirs, excluded_files, included_dirs, included_files)
-            logger.info(f"Retriever prepared for {request.repo_url}")
-        except ValueError as e:
-            if "No valid documents with embeddings found" in str(e):
-                logger.error(f"No valid embeddings found: {str(e)}")
-                raise HTTPException(status_code=500, detail="No valid document embeddings found. This may be due to embedding size inconsistencies or API errors during document processing. Please try again or check your repository content.")
-            else:
-                logger.error(f"ValueError preparing retriever: {str(e)}")
-                raise HTTPException(status_code=500, detail=f"Error preparing retriever: {str(e)}")
-        except Exception as e:
-            logger.error(f"Error preparing retriever: {str(e)}")
-            # Check for specific embedding-related errors
-            if "All embeddings should be of the same size" in str(e):
-                raise HTTPException(status_code=500, detail="Inconsistent embedding sizes detected. Some documents may have failed to embed properly. Please try again.")
-            else:
-                raise HTTPException(status_code=500, detail=f"Error preparing retriever: {str(e)}")
-
-        # Validate request
-        if not request.messages or len(request.messages) == 0:
-            raise HTTPException(status_code=400, detail="No messages provided")
-
+    # ── Step 1: Validate size synchronously (fast, no I/O) ──────────────────
+    input_too_large = False
+    if request.messages and len(request.messages) > 0:
         last_message = request.messages[-1]
-        if last_message.role != "user":
-            raise HTTPException(status_code=400, detail="Last message must be from the user")
+        if hasattr(last_message, 'content') and last_message.content:
+            tokens = count_tokens(last_message.content, request.provider == "ollama")
+            logger.info(f"Request size: {tokens} tokens")
+            if tokens > 8000:
+                logger.warning(f"Request exceeds recommended token limit ({tokens} > 7500)")
+                input_too_large = True
+
+    # ── Step 2: Build RAG instance and extract filter params (fast) ──────────
+    request_rag = RAG(provider=request.provider, model=request.model)
+
+    excluded_dirs = None
+    excluded_files = None
+    included_dirs = None
+    included_files = None
+
+    if request.excluded_dirs:
+        excluded_dirs = [unquote(d) for d in request.excluded_dirs.split('\n') if d.strip()]
+    if request.excluded_files:
+        excluded_files = [unquote(f) for f in request.excluded_files.split('\n') if f.strip()]
+    if request.included_dirs:
+        included_dirs = [unquote(d) for d in request.included_dirs.split('\n') if d.strip()]
+    if request.included_files:
+        included_files = [unquote(f) for f in request.included_files.split('\n') if f.strip()]
+
+    # ── Step 3: Return a StreamingResponse immediately ───────────────────────
+    # prepare_retriever can take 60 + seconds (ZIP download + Google embeddings).
+    # Heroku kills silent HTTP connections after 30 s (H12 timeout).
+    # Solution: run prepare_retriever in a thread pool and keep the connection
+    # alive by yielding SSE comment heartbeats every 5 s until it finishes.
+
+    async def full_stream():
+        # 3a. Run prepare_retriever in thread pool, yield heartbeats concurrently
+        loop = asyncio.get_event_loop()
+        retriever_error = [None]   # mutable container to capture thread errors
+
+        def _prepare():
+            try:
+                request_rag.prepare_retriever(
+                    request.repo_url, request.type, request.token,
+                    excluded_dirs, excluded_files, included_dirs, included_files
+                )
+                logger.info(f"Retriever prepared for {request.repo_url}")
+            except Exception as exc:
+                retriever_error[0] = exc
+
+        future = loop.run_in_executor(None, _prepare)
+
+        # Yield heartbeat SSE comments while the thread is running.
+        # Heroku treats any byte sent as activity → no H12 timeout.
+        while not future.done():
+            yield ": heartbeat\n\n"
+            try:
+                await asyncio.wait_for(asyncio.shield(future), timeout=5)
+                break   # finished before the 5-s wait elapsed
+            except asyncio.TimeoutError:
+                pass    # still running, loop back and send another heartbeat
+
+        await future  # ensure thread is fully done
+
+        # 3b. Surface any error from the thread
+        if retriever_error[0] is not None:
+            exc = retriever_error[0]
+            err_str = str(exc)
+            logger.error(f"ValueError preparing retriever: {err_str}")
+            if "No valid documents with embeddings found" in err_str:
+                yield f"data: {{\"error\": \"No valid document embeddings found.\"}}"
+            elif "All embeddings should be of the same size" in err_str:
+                yield f"data: {{\"error\": \"Inconsistent embedding sizes detected.\"}}"
+            else:
+                yield f"data: {{\"error\": \"Error preparing retriever: {err_str}\"}}"
+            return
+
+        # 3c. Validate request
+        if not request.messages or len(request.messages) == 0:
+            yield 'data: {"error": "No messages provided"}'
+            return
+        last_msg = request.messages[-1]
+        if last_msg.role != "user":
+            yield 'data: {"error": "Last message must be from the user"}'
+            return
 
         # Process previous messages to build conversation history
         for i in range(0, len(request.messages) - 1, 2):
@@ -167,7 +202,7 @@ async def chat_completions_stream(request: ChatCompletionRequest):
             logger.info(f"Deep Research request detected - iteration {research_iteration}")
 
             # Check if this is a continuation request
-            if "continue" in last_message.content.lower() and "research" in last_message.content.lower():
+            if "continue" in last_msg.content.lower() and "research" in last_msg.content.lower():
                 # Find the original topic from the first user message
                 original_topic = None
                 for msg in request.messages:
@@ -178,11 +213,11 @@ async def chat_completions_stream(request: ChatCompletionRequest):
 
                 if original_topic:
                     # Replace the continuation message with the original topic
-                    last_message.content = original_topic
+                    last_msg.content = original_topic
                     logger.info(f"Using original topic for research: {original_topic}")
 
         # Get the query from the last message
-        query = last_message.content
+        query = last_msg.content
 
         # Only retrieve documents if input is not too large
         context_text = ""
@@ -735,15 +770,13 @@ async def chat_completions_stream(request: ChatCompletionRequest):
                     # For other errors, return the error message
                     yield f"\nError: {error_message}"
 
-        # Return streaming response
-        return StreamingResponse(response_stream(), media_type="text/event-stream")
+        # Stream the actual LLM response after indexing is done
+        async for chunk in response_stream():
+            yield chunk
 
-    except HTTPException:
-        raise
-    except Exception as e_handler:
-        error_msg = f"Error in streaming chat completion: {str(e_handler)}"
-        logger.error(error_msg)
-        raise HTTPException(status_code=500, detail=error_msg)
+    # Return the full streaming response (heartbeats + actual content)
+    return StreamingResponse(full_stream(), media_type="text/event-stream")
+
 
 @app.get("/")
 async def root():
