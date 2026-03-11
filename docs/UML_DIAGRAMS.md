@@ -1,9 +1,3 @@
-# Living Documentation System — UML Diagrams
-
-> **Project:** Living Documentation System  
-> **Author:** Shantharam  
-> **Date:** March 2026  
-> **Tools:** Mermaid.js UML Notation
 
 ---
 
