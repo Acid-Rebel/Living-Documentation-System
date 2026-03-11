@@ -36,7 +36,7 @@
 
 </div>
 
-Just enter a repo name, and Living Documentation System will:
+**Living Documentation System** is our own implementation attempt of Living Documentation System, automatically creates beautiful, interactive wikis for any GitHub, GitLab, or BitBucket repository! Just enter a repo name, and Living Documentation System will:
 
 1. Analyze the code structure
 2. Generate comprehensive documentation
