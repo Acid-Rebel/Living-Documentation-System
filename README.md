@@ -1,5 +1,30 @@
 # Living Documentation System-Open
 
+<!-- Live -->
+[![Live](https://img.shields.io/badge/Live-docswiki.dev-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://docswiki.dev)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg?style=for-the-badge)](https://github.com/Sri-Krishna-V/Derived-WMD)
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+<!-- Stack -->
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+
+<!-- Infra -->
+[![Deployed on Heroku](https://img.shields.io/badge/Backend-Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white)](https://heroku.com)
+[![Deployed on Vercel](https://img.shields.io/badge/Frontend-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+
+<!-- AI Providers -->
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-Supported-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[![OpenAI](https://img.shields.io/badge/OpenAI-Supported-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
+[![OpenRouter](https://img.shields.io/badge/OpenRouter-Supported-FF6B35?style=for-the-badge)](https://openrouter.ai)
+
+<!-- CI & Quality -->
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge&logo=github)](https://github.com/Acid-Rebel/Living-Documentation-System/pulls)
+
+<br>
+
 ![Living Documentation System Banner](screenshots/Deepwiki.png)
 
 **Living Documentation System** is my own implementation attempt of Living Documentation System, automatically creates beautiful, interactive wikis for any GitHub, GitLab, or BitBucket repository! Just enter a repo name, and Living Documentation System will:
