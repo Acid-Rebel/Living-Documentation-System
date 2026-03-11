@@ -2,7 +2,6 @@
 
 # Living Documentation System-Open
 
-<<<<<<< HEAD
 <!-- Live -->
 [![Live](https://img.shields.io/badge/Live-docswiki.dev-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://docswiki.dev)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg?style=for-the-badge)](https://github.com/Sri-Krishna-V/Derived-WMD)
@@ -27,10 +26,6 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge&logo=github)](https://github.com/Acid-Rebel/Living-Documentation-System/pulls)
 
 <br>
-
-![Living Documentation System Banner](screenshots/Deepwiki.png)
-=======
->>>>>>> fbe355f94ec4c9068b56cedd7c6dbf7340eea15d
 
 **Living Documentation System** is my own implementation attempt of Living Documentation System, automatically creates beautiful, interactive wikis for any GitHub, GitLab, or BitBucket repository!
 
