@@ -33,14 +33,7 @@ To ensure tests are fast and reliable, we use extensive mocking:
 The project maintains compatibility with legacy versions (found in `legacy_versions/`).
 - **Conditional Skipping**: Tests requiring dependencies not present in the current environment (e.g., `django`, `markdown`) are automatically skipped using `pytest.skip` rather than failing collection.
 
-## 5. Remaining Gaps & Roadmap
-The following areas are currently not covered and are prioritized for future development:
-- **End-to-End (E2E) Testing**: Full user workflows from repository ingestion to diagram generation.
-- **Performance Testing**: Benchmarking the engine against large-scale repositories (100k+ lines of code).
-- **Automated Dependency Management**: Containerized testing environments for legacy suites to avoid manual skipping.
-- **Coverage Enforcement**: Implementing `pytest-cov` with a minimum threshold (e.g., 80%) in CI/CD.
-
-## 6. CI/CD Pipeline
+## 5. CI/CD Pipeline
 - **Platform**: GitHub Actions.
 - **Steps**:
   1. Setup Python environment.
