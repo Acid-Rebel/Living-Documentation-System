@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import TokenInput from '@/components/TokenInput';
 
 interface ConfigurationModalProps {
   isOpen: boolean;
@@ -60,6 +61,7 @@ interface ConfigurationModalProps {
 
 export default function ConfigurationModal(props: ConfigurationModalProps) {
   const { messages: t } = useLanguage();
+  const [showTokenSection, setShowTokenSection] = useState(false);
 
   if (!props.isOpen) return null;
 
@@ -158,6 +160,16 @@ export default function ConfigurationModal(props: ConfigurationModalProps) {
                 </button>
               </div>
             </div>
+
+            {/* Access Token for Private Repositories */}
+            <TokenInput
+              selectedPlatform={props.selectedPlatform}
+              setSelectedPlatform={props.setSelectedPlatform}
+              accessToken={props.accessToken}
+              setAccessToken={props.setAccessToken}
+              showTokenSection={showTokenSection}
+              onToggleTokenSection={() => setShowTokenSection(!showTokenSection)}
+            />
           </div>
 
           <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[var(--border-color)]">

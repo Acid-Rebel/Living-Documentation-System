@@ -1,5 +1,8 @@
+<div align="center">
+
 # Living Documentation System-Open
 
+<<<<<<< HEAD
 <!-- Live -->
 [![Live](https://img.shields.io/badge/Live-docswiki.dev-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://docswiki.dev)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg?style=for-the-badge)](https://github.com/Sri-Krishna-V/Derived-WMD)
@@ -26,13 +29,32 @@
 <br>
 
 ![Living Documentation System Banner](screenshots/Deepwiki.png)
+=======
+>>>>>>> fbe355f94ec4c9068b56cedd7c6dbf7340eea15d
 
-**Living Documentation System** is my own implementation attempt of Living Documentation System, automatically creates beautiful, interactive wikis for any GitHub, GitLab, or BitBucket repository! Just enter a repo name, and Living Documentation System will:
+**Living Documentation System** is my own implementation attempt of Living Documentation System, automatically creates beautiful, interactive wikis for any GitHub, GitLab, or BitBucket repository!
+
+![Derived Homepage](public/lds.jpeg)
+
+### Got to know a little more ?
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Acid-Rebel/Living-Documentation-System)
+
+</div>
+
+Just enter a repo name, and Living Documentation System will:
 
 1. Analyze the code structure
 2. Generate comprehensive documentation
 3. Create visual diagrams to explain how everything works
 4. Organize it all into an easy-to-navigate wiki
+
+## Pipeline 
+
+![PIPELINE](public/architecture.jpeg)
+
+## RAG Pipeline
+
+![RAG ARCHITECTURE](public/rag.jpeg)
 
 ## Architecture
 ```mermaid
@@ -119,9 +141,8 @@ T --> U
 end
 ```
 
-[English](./README.md) | [简体中文](./README.zh.md) | [繁體中文](./README.zh-tw.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [한국어](./README.kr.md) | [Tiếng Việt](./README.vi.md) | [Português Brasileiro](./README.pt-br.md) | [Français](./README.fr.md) | [Русский](./README.ru.md)
 
-## ✨ Features
+## Features
 
 - **Instant Documentation**: Turn any GitHub, GitLab or BitBucket repo into a wiki in seconds
 - **Private Repository Support**: Securely access private repositories with personal access tokens
@@ -133,7 +154,9 @@ end
 - **Multiple Model Providers**: Support for Google Gemini, OpenAI, OpenRouter, and local Ollama models
 - **Flexible Embeddings**: Choose between OpenAI, Google AI, or local Ollama embeddings for optimal performance
 
-## 🚀 Quick Start (Super Easy!)
+
+
+##  Quick Start 
 
 ### Option 1: Using Docker
 
@@ -161,7 +184,7 @@ docker-compose up
 
 For detailed instructions on using Living Documentation System with Ollama and Docker, see [Ollama Instructions](Ollama-instruction.md).
 
-> 💡 **Where to get these keys:**
+>  **Where to get these keys:**
 > - Get a Google API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 > - Get an OpenAI API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 > - Get Azure OpenAI credentials from [Azure Portal](https://portal.azure.com/) - create an Azure OpenAI resource and get the API key, endpoint, and API version
@@ -218,7 +241,7 @@ yarn dev
 3. For private repositories, click "+ Add access tokens" and enter your GitHub or GitLab personal access token
 4. Click "Generate Wiki" and watch the magic happen!
 
-## 🔍 How It Works
+## How It Works
 
 Living Documentation System uses AI to:
 
@@ -268,7 +291,7 @@ graph TD
     class H result;
 ```
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
 deepwiki/
@@ -291,7 +314,7 @@ deepwiki/
 └── .env                  # Environment variables (create this)
 ```
 
-## 🤖 Provider-Based Model Selection System
+##  Provider-Based Model Selection System
 
 Living Documentation System now implements a flexible provider-based model selection system supporting multiple LLM providers:
 
@@ -366,7 +389,7 @@ The OpenAI Client's base_url configuration is designed primarily for enterprise 
 
 **Coming Soon**: In future updates, Living Documentation System will support a mode where users need to provide their own API keys in requests. This will allow enterprise customers with private channels to use their existing API arrangements without sharing credentials with the Living Documentation System deployment.
 
-## 🧩 Using OpenAI-Compatible Embedding Models (e.g., Alibaba Qwen)
+## Using OpenAI-Compatible Embedding Models (e.g., Alibaba Qwen)
 
 If you want to use embedding models compatible with the OpenAI API (such as Alibaba Qwen), follow these steps:
 
@@ -380,7 +403,7 @@ If you want to use embedding models compatible with the OpenAI API (such as Alib
 
 This allows you to seamlessly switch to any OpenAI-compatible embedding service without code changes.
 
-## 🧠 Using Google AI Embeddings
+## Using Google AI Embeddings
 
 Living Documentation System now supports Google AI's latest embedding models as an alternative to OpenAI embeddings. This provides better integration when you're already using Google Gemini models for text generation.
 
@@ -499,7 +522,7 @@ docker-compose up
 
 **Logging Path Security Considerations:** In production environments, ensure the `api/logs` directory and any custom log file path are secured with appropriate filesystem permissions and access controls. The application enforces that `LOG_FILE_PATH` resides within the project's `api/logs` directory to prevent path traversal or unauthorized writes.
 
-## 🛠️ Advanced Setup
+## Advanced Setup
 
 ### Environment Variables
 
@@ -660,7 +683,7 @@ The API server provides:
 
 For more details, see the [API README](./api/README.md).
 
-## 🔌 OpenRouter Integration
+## OpenRouter Integration
 
 Living Documentation System now supports [OpenRouter](https://openrouter.ai/) as a model provider, giving you access to hundreds of AI models through a single API:
 
@@ -682,7 +705,7 @@ OpenRouter is particularly useful if you want to:
 - Compare performance across different model providers
 - Optimize for cost vs. performance based on your needs
 
-## 🤖 Ask & DeepResearch Features
+## Ask & DeepResearch Features
 
 ### Ask Feature
 
@@ -708,7 +731,7 @@ DeepResearch takes repository analysis to the next level with a multi-turn resea
 To use DeepResearch, simply toggle the "Deep Research" switch in the Ask interface before submitting your question.
 
 
-## ❓ Troubleshooting
+##  Troubleshooting
 
 ### API Key Issues
 - **"Missing environment variables"**: Make sure your `.env` file is in the project root and contains the required API keys
@@ -720,11 +743,3 @@ To use DeepResearch, simply toggle the "Deep Research" switch in the Ask interfa
 - **"Cannot connect to API server"**: Make sure the API server is running on port 8001
 - **"CORS error"**: The API is configured to allow all origins, but if you're having issues, try running both frontend and backend on the same machine
 
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=AsyncFuncAI/Living Documentation System&type=Date)](https://star-history.com/#AsyncFuncAI/Living Documentation System&Date)
